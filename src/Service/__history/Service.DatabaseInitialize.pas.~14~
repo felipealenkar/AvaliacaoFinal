@@ -1,0 +1,83 @@
+unit Service.DatabaseInitialize;
+
+interface
+
+uses
+  Model.ParametrosDb,
+  Repository.DatabaseInitialize,
+  Winapi.Windows,
+  System.SysUtils,
+  FireDAC.Comp.Client;
+type
+  TAppStarter = class
+  private
+    FDatabaseInitialize: TDatabaseInitialize;
+    procedure InstalarBancoDeDados;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function PrepararAmbiente: Boolean;
+
+  end;
+
+
+implementation
+
+{ TAppStarter }
+
+function TAppStarter.PrepararAmbiente: Boolean;
+var
+  BancoExiste: Boolean;
+begin
+  try
+    Result := True;
+    if FDatabaseInitialize.Conectar('postgres') then
+    begin
+      BancoExiste := FDatabaseInitialize.ExistirBancoDeDados;
+      if not BancoExiste then
+        MessageBox(0, PChar('!!!Bem vindo ao HortiSys!!!, ' + sLineBreak + sLineBreak +
+                    Format('Não foi encontrado o database %s', [TParametrosDb.NomeDatabase]) + ', ele será criado.'),
+                    'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+        InstalarBancoDeDados;
+        if not BancoExiste then
+          MessageBox(0, PChar(Format('Banco de dados %s', [TParametrosDb.NomeDatabase]) + ' criado com sucesso'),
+                    'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    end;
+  except
+    on E:Exception do
+    begin
+      Result := False;
+      MessageBox(0, PChar(E.ToString), 'HortiSys', MB_OK or MB_ICONERROR or MB_TASKMODAL);
+    end;
+  end;
+end;
+
+constructor TAppStarter.Create;
+begin
+  FDatabaseInitialize := TDatabaseInitialize.Create;
+end;
+
+destructor TAppStarter.Destroy;
+begin
+  FDatabaseInitialize.Free;
+  inherited;
+end;
+
+procedure TAppStarter.InstalarBancoDeDados;
+begin
+  try
+    FDatabaseInitialize.CriarDatabase;
+    FDatabaseInitialize.Conectar(TParametrosDb.NomeDatabase);
+    FDatabaseInitialize.CriarSchema;
+    FDatabaseInitialize.CriarTabelaTipoCultura;
+    FDatabaseInitialize.CriarTabelaCultura;
+    FDatabaseInitialize.CriarTabelaManejo;
+  except
+    on E:Exception do
+      raise Exception.Create('Erro no processo de Criação do banco de dados' +
+            sLineBreak + sLineBreak + E.ToString + sLineBreak + sLineBreak +
+                            'A aplicação não será inicializada.');
+  end;
+end;
+
+end.

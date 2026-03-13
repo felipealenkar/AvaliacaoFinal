@@ -1,0 +1,58 @@
+unit Service.DbStart;
+
+interface
+
+uses
+  Model.ParametrosDb, Repository.DbStart, System.SysUtils, FireDAC.Comp.Client;
+
+type
+  TDbStartService = class
+  private
+    FDbStartRepository: TDbStartRepository;
+  public
+    constructor Create(PDbStartRepository: TDbStartRepository);
+    destructor Destroy; override;
+    function VerificarAmbiente: Boolean;
+    procedure InstalarBancoDeDados;
+  end;
+
+implementation
+
+{ TDbStartService }
+
+function TDbStartService.VerificarAmbiente: Boolean;
+begin
+  Result := not FDbStartRepository.ExistirBancoDeDados;
+end;
+
+constructor TDbStartService.Create(PDbStartRepository: TDbStartRepository);
+begin
+  inherited Create;
+  FDbStartRepository := PDbStartRepository;
+end;
+
+destructor TDbStartService.Destroy;
+begin
+  FDbStartRepository.Free;
+  inherited;
+end;
+
+procedure TDbStartService.InstalarBancoDeDados;
+begin
+  try
+    FDbStartRepository.CriarDatabase;
+    FDbStartRepository.CriarConexao(TParametrosDb.NomeDatabase);
+    FDbStartRepository.CriarSchema;
+    FDbStartRepository.CriarTabelaTipoCultura;
+    FDbStartRepository.CriarTabelaCultura;
+    FDbStartRepository.CriarTabelaManejo;
+  except
+    on E: Exception do
+      raise Exception.Create(Format('Erro no processo de Criação do banco de dados %s.', [TParametrosDb.NomeDatabase])
+                            + sLineBreak + sLineBreak + E.ToString + sLineBreak + sLineBreak
+                            + 'A aplicação não será inicializada.');
+  end;
+end;
+
+end.
+

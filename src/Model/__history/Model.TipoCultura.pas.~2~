@@ -1,0 +1,17 @@
+unit Model.TipoCultura;
+
+interface
+
+type
+  TTipoCultura = class
+  private
+    FIdTipoCultura: Integer;
+    FDescricao: string;
+  public
+    property IdTipoCultura: Integer read FIdTipoCultura write FIdTipoCultura;
+    property Descricao: string read FDescricao write FDescricao;
+  end;
+
+implementation
+
+end.

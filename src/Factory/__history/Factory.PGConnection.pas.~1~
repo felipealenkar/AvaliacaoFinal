@@ -1,0 +1,7 @@
+unit Factory.PGConnection;
+
+interface
+
+implementation
+
+end.

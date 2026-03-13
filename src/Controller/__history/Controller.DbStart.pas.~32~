@@ -1,0 +1,56 @@
+unit Controller.DbStart;
+
+interface
+
+uses
+  Winapi.Windows,
+  System.SysUtils,
+  Model.ParametrosDb,
+  Service.DbStart;
+
+type
+  TDBStartController = class
+  private
+    FDbStartService: TDbStartService;
+  public
+    constructor Create(PDbStartService: TDbStartService);
+    destructor Destroy; override;
+    function IniciarAmbiente: Boolean;
+  end;
+implementation
+
+{ TDBStartController }
+
+constructor TDBStartController.Create(PDbStartService: TDbStartService);
+begin
+  inherited Create;
+  FDbStartService := PDbStartService;
+end;
+
+destructor TDBStartController.Destroy;
+begin
+  FDbStartService.Free;
+  inherited;
+end;
+
+function TDBStartController.IniciarAmbiente: Boolean;
+begin
+  try
+    Result := True;
+    if not FDbStartService.VerificarAmbiente then
+    begin
+      MessageBox(0, PChar('!!!Bem vindo ao HortiSys!!!, ' + sLineBreak + sLineBreak +
+                      Format('Não foi encontrado o database %s', [TParametrosDb.NomeDatabase]) + ', ele será criado.'),
+                      'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    end;
+    FDbStartService.InstalarBancoDeDados;
+  except
+    on E:Exception do
+    begin
+      Result := False;
+      MessageBox(0, PChar(E.ToString), 'HortiSys', MB_OK or MB_ICONERROR or MB_TASKMODAL);
+    end;
+  end;
+end;
+
+end.

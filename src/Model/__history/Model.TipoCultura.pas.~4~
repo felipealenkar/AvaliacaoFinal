@@ -1,0 +1,39 @@
+unit Model.TipoCultura;
+
+interface
+
+uses
+  System.SysUtils;
+
+type
+  TTipoCultura = class
+  private
+    FIdTipoCultura: Integer;
+    FDescricao: string;
+
+    procedure SetDescricao(const PDescricao: string);
+  public
+    constructor Create;
+
+    property IdTipoCultura: Integer read FIdTipoCultura write FIdTipoCultura;
+    property Descricao: string read FDescricao write SetDescricao;
+  end;
+
+implementation
+
+{ TTipoCultura }
+
+constructor TTipoCultura.Create;
+begin
+  inherited Create;
+end;
+
+procedure TTipoCultura.SetDescricao(const PDescricao: string);
+begin
+  if Trim(PDescricao).IsEmpty then
+    raise Exception.Create('Descrição do tipo de cultura não pode estar vazia');
+
+  FDescricao := PDescricao;
+end;
+
+end.

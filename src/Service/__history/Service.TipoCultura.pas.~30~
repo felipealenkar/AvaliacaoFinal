@@ -1,0 +1,84 @@
+unit Service.TipoCultura;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Model.TipoCultura,
+  Repository.TipoCultura;
+
+type
+  TTipoCulturaService = class
+  private
+    FTipoCulturaRepository: TTipoCulturaRepository;
+  public
+    constructor Create(PTipoCulturaRepository: TTipoCulturaRepository);
+    destructor Destroy; override;
+
+    procedure Inserir(PDescricao: string);
+    procedure Atualizar(PId: Integer; PDescricao: string);
+    procedure Excluir(PId: Integer);
+
+    function Listar(POrdenacao: string): TObjectList<TTipoCultura>;
+    function Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoCultura>;
+  end;
+
+implementation
+{ TTipoCulturaService }
+
+procedure TTipoCulturaService.Atualizar(PId: Integer; PDescricao: string);
+var
+  LTipoCultura: TTipoCultura;
+begin
+  LTipoCultura := TTipoCultura.Create;
+  try
+    LTipoCultura.IdTipoCultura := PId;
+    LTipoCultura.Descricao := PDescricao;
+
+    FTipoCulturaRepository.Atualizar(LTipoCultura);
+  finally
+    LTipoCultura.Free;
+  end;
+end;
+
+constructor TTipoCulturaService.Create(PTipoCulturaRepository: TTipoCulturaRepository);
+begin
+  inherited Create;
+  FTipoCulturaRepository := PTipoCulturaRepository;
+end;
+
+destructor TTipoCulturaService.Destroy;
+begin
+  FTipoCulturaRepository.Free;
+  inherited;
+end;
+
+procedure TTipoCulturaService.Excluir(PId: Integer);
+begin
+  FTipoCulturaRepository.Excluir(PId);
+end;
+
+function TTipoCulturaService.Listar(POrdenacao: string): TObjectList<TTipoCultura>;
+begin
+  Result := FTipoCulturaRepository.Listar(POrdenacao);
+end;
+
+function TTipoCulturaService.Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoCultura>;
+begin
+  Result := FTipoCulturaRepository.Pesquisar(PBusca, POrdenacao);
+end;
+
+procedure TTipoCulturaService.Inserir(PDescricao: string);
+var
+  LTipoCultura: TTipoCultura;
+begin
+  LTipoCultura := TTipoCultura.Create;
+  try
+    LTipoCultura.Descricao := PDescricao;
+    FTipoCulturaRepository.Inserir(LTipoCultura);
+  finally
+    LTipoCultura.Free;
+  end;
+end;
+
+end.

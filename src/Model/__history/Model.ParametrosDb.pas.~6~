@@ -1,0 +1,13 @@
+unit Model.ParametrosDb;
+
+interface
+
+type
+  RParametrosDb = record
+    const NomeDatabase: string = 'HORTISYSDB';
+    const NomeSchema: string = 'HORTISYS';
+    const Porta: string = '5433';
+    const SenhaPg: string = '#abc123#';
+  end;
+implementation
+end.

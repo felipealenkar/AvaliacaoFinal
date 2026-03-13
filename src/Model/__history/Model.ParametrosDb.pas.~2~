@@ -1,0 +1,10 @@
+unit Model.ParametrosDb;
+
+interface
+
+type
+  TParametrosDb = record
+    const NomeDatabase: string = 'HORTISYS';
+  end;
+implementation
+end.

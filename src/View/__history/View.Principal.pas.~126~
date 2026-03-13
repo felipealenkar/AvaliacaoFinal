@@ -1,0 +1,122 @@
+unit View.Principal;
+
+interface
+
+uses
+  DataModule.Icons, View.TipoCultura, View.Cultura, View.RelatorioTipoCultura, Factory.Provider, Controller.TipoCultura,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
+  Vcl.Imaging.pngimage, Vcl.VirtualImage, Vcl.BaseImageCollection,
+  Vcl.ImageCollection, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList;
+
+type
+  TFrmPrincipal = class(TForm)
+    tmrDataHora: TTimer;
+    VimgLTelaPrincipal: TVirtualImageList;
+    PnlMenuPrincipal: TPanel;
+    LblDataHora: TLabel;
+    PnlRelatórios: TPanel;
+    LblRelatorios: TLabel;
+    PnlCadastros: TPanel;
+    SbtnCultura: TSpeedButton;
+    SbtnManejo: TSpeedButton;
+    SbtnTipoCultura: TSpeedButton;
+    LblCadastros: TLabel;
+    PnlPrincipal: TPanel;
+    PnlTopo: TPanel;
+    SbtnSair: TSpeedButton;
+    PnlDesktop: TPanel;
+    VimgLogo: TVirtualImage;
+    SbtnRelatorioTipoCultura: TSpeedButton;
+    procedure tmrDataHoraTimer(Sender: TObject);
+    procedure SbtnSairClick(Sender: TObject);
+    procedure SbtnTipoCulturaClick(Sender: TObject);
+    procedure SbtnRelatorioTipoCulturaClick(Sender: TObject);
+    procedure SbtnCulturaClick(Sender: TObject);
+  private
+    procedure LimparPnlDesktop;
+    procedure AbrirFormNoPnlDesktop(PForm: TForm);
+    procedure ReceberComando(var Msg: TMessage); message WM_USER + 1234;
+    procedure AtualizarBotoes;
+
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FrmPrincipal: TFrmPrincipal;
+
+implementation
+
+{$R *.dfm}
+
+procedure TFrmPrincipal.AbrirFormNoPnlDesktop(PForm: TForm);
+begin
+  LimparPnlDesktop;
+  PForm.Parent := PnlDesktop;
+  PForm.Show;
+end;
+
+procedure TFrmPrincipal.AtualizarBotoes;
+begin
+  SbtnCultura.Enabled := True;
+  SbtnManejo.Enabled := True;
+  SbtnTipoCultura.Enabled := True;
+
+  if PnlDesktop.ControlCount > 1 then
+  begin
+    if PnlDesktop.Controls[1] is TFrmTipoCultura then
+      SbtnTipoCultura.Enabled := False;
+    if PnlDesktop.Controls[1] is TFrmCultura then
+      SbtnCultura.Enabled := False;
+    // ... outros ifs aqui
+  end;
+end;
+
+procedure TFrmPrincipal.LimparPnlDesktop;
+var
+  I: Integer;
+begin
+  for I := PnlDesktop.ControlCount - 1 downto 1 do
+    if (PnlDesktop.Controls[I] is TForm) and
+       not (csDestroying in PnlDesktop.Controls[I].ComponentState) then
+      PnlDesktop.Controls[I].Free;
+end;
+
+procedure TFrmPrincipal.SbtnCulturaClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewCulturaView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioTipoCulturaClick(Sender: TObject);
+var
+  LFrmRelatorioTipoCultura: TFrmRelatorioTipoCultura;
+begin
+  LFrmRelatorioTipoCultura := TProviderFactory.NewRelatorioTipoCulturaView(Self);
+  LFrmRelatorioTipoCultura.CarregarRelatorio;
+end;
+
+procedure TFrmPrincipal.SbtnSairClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TFrmPrincipal.SbtnTipoCulturaClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewTipoCulturaView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.tmrDataHoraTimer(Sender: TObject);
+begin
+  LblDataHora.Caption := DateToStr(Date) + ' - ' + TimeToStr(Now);
+end;
+
+procedure TFrmPrincipal.ReceberComando(var Msg: TMessage);
+begin
+  AtualizarBotoes;
+end;
+
+end.

@@ -1,0 +1,113 @@
+unit View.RelatorioTipoCultura;
+
+interface
+
+uses
+  Controller.TipoCultura, Model.TipoCultura,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Generics.Collections, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, RLReport, Vcl.Imaging.pngimage,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, RLPreviewForm;
+
+type
+  TFrmRelatorioTipoCultura = class(TForm)
+    RlrMaster: TRLReport;
+    RlbCabecalho: TRLBand;
+    rldrw1: TRLDraw;
+    img1: TRLImage;
+    rlbl1: TRLLabel;
+    rlbl2: TRLLabel;
+    rlsystmnf1: TRLSystemInfo;
+    rlbl4: TRLLabel;
+    rlbl5: TRLLabel;
+    rldrw2: TRLDraw;
+    rlbndDetalhe: TRLBand;
+    DbTextIdentificador: TRLDBText;
+    DbTextDescricao: TRLDBText;
+    rlbndRodapé: TRLBand;
+    rldrw3: TRLDraw;
+    rlbl3: TRLLabel;
+    rlsystmnf2: TRLSystemInfo;
+  private
+    FTipoCulturaController: TTipoCulturaController;
+  public
+    procedure CarregarRelatorio;
+    constructor Create(POwner: TComponent; PTipoCulturaController: TTipoCulturaController); reintroduce;
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{$R *.dfm}
+
+{ TFrmRelatorioTipoCultura }
+
+procedure TFrmRelatorioTipoCultura.CarregarRelatorio;
+var
+  LDFMTableTipoCultura: TFDMemTable;
+  LDsTipoCultura: TDataSource;
+  LLista: TObjectList<TTipoCultura>;
+  I: Integer;
+  LPreviewSetup: TRLPreviewSetup;
+begin
+  LLista := nil;
+  LDFMTableTipoCultura := nil;
+  LDsTipoCultura := nil;
+  LPreviewSetup := nil;
+
+  try
+    try
+      LDFMTableTipoCultura := TFDMemTable.Create(nil);
+      LDFMTableTipoCultura.FieldDefs.Add('id_tipocultura', ftInteger, 0, True);
+      LDFMTableTipoCultura.FieldDefs.Add('descricao', ftString, 50, True);
+      LDFMTableTipoCultura.CreateDataSet;
+
+      LDsTipoCultura := TDataSource.Create(nil);
+      LDsTipoCultura.DataSet := LDFMTableTipoCultura;
+
+      LLista := FTipoCulturaController.Listar('id_tipocultura');
+
+      for I := 0 to LLista.Count -1 do
+      begin
+        LDFMTableTipoCultura.Append;
+        LDFMTableTipoCultura.FieldByName('id_tipocultura').AsInteger := LLista[i].IdTipoCultura;
+        LDFMTableTipoCultura.FieldByName('descricao').AsString := LLista[i].Descricao;
+        LDFMTableTipoCultura.Post;
+      end;
+
+      RlrMaster.DataSource := LDsTipoCultura;
+      DbTextIdentificador.DataSource := LDsTipoCultura;
+      DbTextDescricao.DataSource := LDsTipoCultura;
+
+      DbTextIdentificador.DataField := 'id_tipocultura';
+      DbTextDescricao.DataField := 'descricao';
+
+      LPreviewSetup := TRLPreviewSetup.Create(nil);
+      LPreviewSetup.ZoomFactor := 85;
+      RlrMaster.Preview();
+    except
+      on E: Exception do
+        raise Exception.Create('Erro ao carregar o relatório.' + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LLista.Free;
+    LDsTipoCultura.Free;
+    LDFMTableTipoCultura.Free;
+    LPreviewSetup.Free;
+  end;
+end;
+
+constructor TFrmRelatorioTipoCultura.Create(POwner: TComponent; PTipoCulturaController: TTipoCulturaController);
+begin
+  inherited Create(POwner);
+  FTipoCulturaController := PTipoCulturaController;
+end;
+
+destructor TFrmRelatorioTipoCultura.Destroy;
+begin
+  FTipoCulturaController.Free;
+  inherited;
+end;
+
+end.

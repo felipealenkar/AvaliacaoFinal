@@ -1,0 +1,307 @@
+unit Repository.Cultura;
+
+interface
+
+uses
+  Repository.Base,
+  System.SysUtils,
+  System.Generics.Collections,
+  Data.DB, FireDAC.Comp.Client, FireDAC.Stan.Param,
+  Model.Cultura,
+  Model.DbStart;
+
+type
+  TCulturaRepository = class(TBaseRepository)
+  public
+    procedure Inserir(PCultura: TCultura);
+    procedure Atualizar(PCultura: TCultura);
+    procedure Excluir(PIdCultura: Integer);
+    function Listar(POrdenacao: string): TObjectList<TCultura>;
+    function Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
+
+    function ObterPorId(PId: Integer): TCultura;
+  end;
+
+implementation
+
+procedure TCulturaRepository.Inserir(PCultura: TCultura);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+        Format('INSERT INTO %s.cultura ' +
+        '(nome, id_tipocultura, data_plantio, ativo, foto) ' +
+        'VALUES (:PNome,:PId_TipoCultura,:PData_Plantio,:PAtivo,:PFoto)',
+        [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PNome').AsString := PCultura.Nome;
+      LQuery.ParamByName('PId_TipoCultura').AsInteger := PCultura.IdTipoCultura;
+      LQuery.ParamByName('PData_Plantio').AsDateTime := PCultura.DataPlantio;
+      LQuery.ParamByName('PAtivo').AsBoolean := PCultura.Ativo;
+
+      LQuery.ParamByName('PFoto').DataType := ftBlob;
+      if PCultura.Foto.Size > 0 then
+      begin
+        PCultura.Foto.Position := 0;
+        LQuery.ParamByName('PFoto').LoadFromStream(PCultura.Foto, ftBlob);
+      end
+      else
+        LQuery.ParamByName('PFoto').Clear;
+
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao inserir dados na tabela %s.cultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+procedure TCulturaRepository.Atualizar(PCultura: TCultura);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('UPDATE %s.cultura SET ' +
+                                'nome=:PNome, id_tipocultura=:PId_TipoCultura, data_plantio=:PData_Plantio, ' +
+                                'ativo=:PAtivo, foto=:PFoto ' +
+                                'WHERE id_cultura=:PId_Cultura',
+                                [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PNome').AsString := PCultura.Nome;
+      LQuery.ParamByName('PId_TipoCultura').AsInteger := PCultura.IdTipoCultura;
+      LQuery.ParamByName('PData_Plantio').AsDateTime := PCultura.DataPlantio;
+      LQuery.ParamByName('PAtivo').AsBoolean := PCultura.Ativo;
+      LQuery.ParamByName('PId_Cultura').AsInteger := PCultura.IdCultura;
+
+      LQuery.ParamByName('PFoto').DataType := ftBlob;
+      if PCultura.Foto.Size > 0 then
+        begin
+          PCultura.Foto.Position := 0;
+          LQuery.ParamByName('PFoto').LoadFromStream(PCultura.Foto, ftBlob);
+        end
+        else
+          LQuery.ParamByName('PFoto').Clear;
+
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao atualizar dados na tabela %s.cultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+procedure TCulturaRepository.Excluir(PIdCultura: Integer);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('DELETE FROM %s.cultura WHERE id_cultura=:Pid', [TDBStart.NomeSchema]);
+      LQuery.ParamByName('PId_Cultura').AsInteger := PIdCultura;
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao excluir dados na tabela %s.cultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TCulturaRepository.Listar(POrdenacao: string): TObjectList<TCultura>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LCultura: TCultura;
+begin
+  Result := TObjectList<TCultura>.Create(True);
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format(
+        'SELECT ' +
+        'c.id_cultura, ' +
+        'c.nome, ' +
+        'c.id_tipocultura, ' +
+        'tc.descricao AS descricao_tipo, ' +
+        'c.data_plantio, ' +
+        'c.ativo ' +
+        'FROM %0:s.cultura c ' +
+        'JOIN %0:s.tipocultura tc ' +
+        'ON tc.id_tipocultura = c.id_tipocultura ' +
+        'ORDER BY &POrdenacao',
+        [TDBStart.NomeSchema]
+      );
+
+    LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
+      LQuery.Open;
+
+      while not LQuery.Eof do
+      begin
+        LCultura := TCultura.Create;
+
+        LCultura.IdCultura := LQuery.FieldByName('id_cultura').AsInteger;
+        LCultura.Nome := LQuery.FieldByName('nome').AsString;
+        LCultura.IdTipoCultura := LQuery.FieldByName('id_tipocultura').AsInteger;
+        LCultura.DescricaoTipoCultura := LQuery.FieldByName('descricao_tipo').AsString;
+        LCultura.DataPlantio := LQuery.FieldByName('data_plantio').AsDateTime;
+        LCultura.Ativo := LQuery.FieldByName('ativo').AsBoolean;
+        Result.Add(LCultura);
+        LQuery.Next;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao listar dados da tabela %s.cultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TCulturaRepository.ObterPorId(PId: Integer): TCultura;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  Result := nil;
+  LConnection := nil;
+  LQuery := nil;
+
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := 'SELECT id_cultura, nome, id_tipocultura, data_plantio, ativo, foto ' +
+                         'FROM cultura WHERE id_cultura = :PId_Cultura';
+      LQuery.ParamByName('PId_Cultura').AsInteger := PId;
+      LQuery.Open;
+
+      if not LQuery.Eof then
+      begin
+        Result := TCultura.Create;
+        Result.IdCultura := LQuery.FieldByName('id_cultura').AsInteger;
+        Result.Nome := LQuery.FieldByName('nome').AsString;
+        Result.IdTipoCultura := LQuery.FieldByName('id_tipocultura').AsInteger;
+        Result.DataPlantio := LQuery.FieldByName('data_plantio').AsDateTime;
+        Result.Ativo := LQuery.FieldByName('ativo').AsBoolean;
+
+        if not LQuery.FieldByName('foto').IsNull then
+        begin
+          Result.Foto.Clear;
+          TBlobField(LQuery.FieldByName('foto')).SaveToStream(Result.Foto);
+          Result.Foto.Position := 0;
+        end;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao obter registro por id na tabela %s.cultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TCulturaRepository.Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LCultura: TCultura;
+begin
+  Result := TObjectList<TCultura>.Create(True);
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format(
+        'SELECT ' +
+        'c.id_cultura, ' +
+        'c.nome, ' +
+        'c.id_tipocultura, ' +
+        'tc.descricao AS descricao_tipo, ' +
+        'c.data_plantio, ' +
+        'c.ativo ' +
+        'FROM %0:s.cultura c ' +
+        'JOIN %0:s.tipocultura tc ' +
+        'ON tc.id_tipocultura = c.id_tipocultura ' +
+        'WHERE CAST(id_cultura AS TEXT) ilike CAST(:PId_Cultura AS TEXT) or ' +
+        '%0:s.sem_acento(nome::text) ilike %0:s.sem_acento(:PNome::text) or ' +
+        '%0:s.sem_acento(descricao::text) ilike %0:s.sem_acento(:PDescricao_tipo::text)' +
+        'ORDER BY &POrdenacao',
+        [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PId_Cultura').AsString := '%' + PBusca + '%';
+      LQuery.ParamByName('PNome').AsString := '%' + PBusca + '%';
+      LQuery.ParamByName('PDescricao_tipo').AsString := '%' + PBusca + '%';
+      LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
+      LQuery.Open;
+
+      while not LQuery.Eof do
+      begin
+        LCultura := TCultura.Create;
+
+        LCultura.IdCultura := LQuery.FieldByName('id_cultura').AsInteger;
+        LCultura.Nome := LQuery.FieldByName('nome').AsString;
+        LCultura.IdTipoCultura := LQuery.FieldByName('id_tipocultura').AsInteger;
+        LCultura.DescricaoTipoCultura := LQuery.FieldByName('descricao_tipo').AsString;
+        LCultura.DataPlantio := LQuery.FieldByName('data_plantio').AsDateTime;
+        LCultura.Ativo := LQuery.FieldByName('ativo').AsBoolean;
+        Result.Add(LCultura);
+        LQuery.Next;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao pesquisar dados da tabela %s.cultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+end.

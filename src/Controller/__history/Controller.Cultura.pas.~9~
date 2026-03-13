@@ -1,0 +1,101 @@
+unit Controller.Cultura;
+
+interface
+
+uses
+  System.SysUtils, System.Generics.Collections, System.Classes,
+  Model.Cultura, Repository.Cultura, Service.Cultura;
+
+type
+  TCulturaController = class
+  private
+    FCulturaService: TCulturaService;
+  public
+    constructor Create(PCulturaRepository: TCulturaRepository);
+    destructor Destroy; override;
+
+    procedure Inserir(PNome: string; PIdTipoCultura: Integer; PDataPlantio: TDateTime; PAtivo: Boolean; PFoto: TMemoryStream);
+    procedure Atualizar(PId: Integer; PNome: string; PIdTipoCultura: Integer; PDataPlantio: TDateTime; PAtivo: Boolean; PFoto: TMemoryStream);
+    procedure Excluir(PId: Integer);
+    function Listar(POrdenacao: string): TObjectList<TCultura>;
+    function Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
+    function ObterPorId(PId: Integer): TCultura;
+  end;
+
+implementation
+
+{ TCulturaController }
+
+constructor TCulturaController.Create(PCulturaRepository: TCulturaRepository);
+begin
+  FCulturaService := TCulturaService.Create(PCulturaRepository);
+end;
+
+destructor TCulturaController.Destroy;
+begin
+  FCulturaService.Free;
+  inherited;
+end;
+
+procedure TCulturaController.Inserir(PNome: string; PIdTipoCultura: Integer;
+                                            PDataPlantio: TDateTime; PAtivo: Boolean; PFoto: TMemoryStream);
+var
+  LCultura: TCultura;
+begin
+  if Trim(PNome).IsEmpty then
+    raise Exception.Create('Nome da cultura não pode estar vazio.');
+
+  LCultura := TCultura.Create;
+  try
+    LCultura.Nome := PNome;
+    LCultura.IdTipoCultura := PIdTipoCultura;
+    LCultura.DataPlantio := PDataPlantio;
+    LCultura.Ativo := PAtivo;
+    LCultura.Foto := PFoto;
+
+    FCulturaService.Inserir(LCultura);
+  finally
+    LCultura.Free;
+  end;
+end;
+
+procedure TCulturaController.Atualizar(PId: Integer; PNome: string; PIdTipoCultura: Integer;
+                                              PDataPlantio: TDateTime; PAtivo: Boolean; PFoto: TMemoryStream);
+var
+  LCultura: TCultura;
+begin
+  LCultura := FCulturaService.ObterPorId(PId);
+  try
+    LCultura.Nome := PNome;
+    LCultura.IdTipoCultura := PIdTipoCultura;
+    LCultura.DataPlantio := PDataPlantio;
+    LCultura.Ativo := PAtivo;
+    LCultura.Foto := PFoto;
+
+    FCulturaService.Atualizar(LCultura);
+  finally
+    LCultura.Free;
+  end;
+end;
+
+procedure TCulturaController.Excluir(PId: Integer);
+begin
+  FCulturaService.Excluir(PId);
+end;
+
+function TCulturaController.Listar(POrdenacao: string): TObjectList<TCultura>;
+begin
+  Result := FCulturaService.Listar(POrdenacao);
+end;
+
+function TCulturaController.Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
+begin
+  Result := FCulturaService.Pesquisar(PBusca, POrdenacao);
+end;
+
+function TCulturaController.ObterPorId(PId: Integer): TCultura;
+begin
+
+end;
+
+end.

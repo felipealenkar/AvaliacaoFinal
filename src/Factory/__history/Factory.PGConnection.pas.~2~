@@ -1,0 +1,23 @@
+unit Factory.PGConnection;
+
+interface
+
+uses
+  Data.Db, FireDAC.Phys.PG, FireDAC.Comp.Client, FireDAC.Stan.Param,
+  FireDAC.Stan.Def, FireDAC.DApt, FireDAC.VCLUI.Wait, FireDAC.Stan.Async, FireDAC.Comp.UI;
+
+var
+  GPgDriverL: TFDPhysPgDriverLink;
+  GWaitCursor: TFDGUIxWaitCursor;
+
+begin
+  ReportMemoryLeaksOnShutdown := True;
+
+  GPgDriverL := TFDPhysPgDriverLink.Create(nil);
+  GPgDriverL.VendorLib := 'C:\Program Files\PostgreSQL\18\bin\libpq.dll';
+
+  GWaitCursor := TFDGUIxWaitCursor.Create(nil);
+
+implementation
+
+end.

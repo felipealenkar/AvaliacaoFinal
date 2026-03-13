@@ -1,0 +1,89 @@
+unit Service.Cultura;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Generics.Collections,
+  System.Classes,
+  Model.Cultura,
+  Repository.Cultura;
+
+type
+  TCulturaService = class
+  private
+    FCulturaRepository: TCulturaRepository;
+  public
+    constructor Create(PCulturaRepository: TCulturaRepository);
+    destructor Destroy; override;
+
+    procedure Inserir(PCultura: TCultura);
+    procedure Atualizar(PId: Integer; PNome: string; PIdTipoCultura: Integer; PDataPlantio: TDateTime; PAtivo: Boolean; PFoto: TMemoryStream);
+    procedure Excluir(PId: Integer);
+
+    function Listar(POrdenacao: string): TObjectList<TCultura>;
+    function Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
+    function ObterPorId(PId: Integer): TCultura;
+  end;
+
+implementation
+
+{ TCulturaService }
+
+constructor TCulturaService.Create(PCulturaRepository: TCulturaRepository);
+begin
+  inherited Create;
+  FCulturaRepository := PCulturaRepository;
+end;
+
+destructor TCulturaService.Destroy;
+begin
+  FCulturaRepository.Free;
+  inherited;
+end;
+
+procedure TCulturaService.Inserir(PCultura: TCultura);
+begin
+  FCulturaRepository.Inserir(PCultura);
+end;
+
+procedure TCulturaService.Atualizar(PId: Integer; PNome: string; PIdTipoCultura: Integer;
+                                    PDataPlantio: TDateTime; PAtivo: Boolean; PFoto: TMemoryStream);
+var
+  LCultura: TCultura;
+begin
+  LCultura := FCulturaRepository.ObterPorId(PId);
+  try
+    LCultura.Nome := PNome;
+    LCultura.IdTipoCultura := PIdTipoCultura;
+    LCultura.DataPlantio := PDataPlantio;
+    LCultura.Ativo := PAtivo;
+    LCultura.Foto := PFoto;
+
+    FCulturaRepository.Atualizar(LCultura);
+  finally
+    LCultura.Free;
+  end;
+end;
+
+procedure TCulturaService.Excluir(PId: Integer);
+begin
+  FCulturaRepository.Excluir(PId);
+end;
+
+function TCulturaService.Listar(POrdenacao: string): TObjectList<TCultura>;
+begin
+  Result := FCulturaRepository.Listar(POrdenacao);
+end;
+
+function TCulturaService.ObterPorId(PId: Integer): TCultura;
+begin
+  FCulturaRepository.ObterPorId(PId);
+end;
+
+function TCulturaService.Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
+begin
+  Result := FCulturaRepository.Pesquisar(PBusca, POrdenacao);
+end;
+
+end.

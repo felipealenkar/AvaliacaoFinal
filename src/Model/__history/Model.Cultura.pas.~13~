@@ -1,0 +1,63 @@
+unit Model.Cultura;
+
+interface
+
+uses
+  System.SysUtils;
+
+type
+  TCultura = class
+  private
+    FIdCultura: Integer;
+    FNome: string;
+    FIdTipoCultura: Integer;
+    FDataPlantio: TDate;
+    FAtiva: Boolean;
+    FFoto: TBytes;
+
+    procedure SetNome(const PNome: string);
+    procedure SetFoto(const PFoto: TBytes);
+  public
+    constructor Create;
+
+    property IdCultura: Integer read FIdCultura write FIdCultura;
+    property Nome: string read FNome write SetNome;
+    property IdTipoCultura: Integer read FIdTipoCultura write FIdTipoCultura;
+    property DataPlantio: TDate read FDataPlantio write FDataPlantio;
+    property Ativo: Boolean read FAtiva write FAtiva;
+    property Foto: TBytes read FFoto write SetFoto;
+  end;
+
+implementation
+
+{ TCultura }
+
+constructor TCultura.Create;
+begin
+  inherited;
+  FAtiva := True;
+  FDataPlantio := Date;
+  SetLength(FFoto, 0);
+end;
+
+procedure TCultura.SetFoto(const PFoto: TBytes);
+begin
+  if Length(PFoto) = 0 then
+  begin
+    SetLength(FFoto, 0);
+    Exit;
+  end;
+
+  SetLength(FFoto, Length(PFoto));
+  Move(PFoto[0], FFoto[0], Length(PFoto));
+end;
+
+procedure TCultura.SetNome(const PNome: string);
+begin
+  if Trim(PNome).IsEmpty then
+    raise Exception.Create('Nome da cultura não pode estar vazio');
+
+  FNome := PNome;
+end;
+
+end.

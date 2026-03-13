@@ -1,0 +1,202 @@
+unit Repository.Cultura;
+
+interface
+
+uses
+  Repository.Base,
+  System.SysUtils,
+  System.Generics.Collections,
+  Data.DB, FireDAC.Comp.Client,
+  Model.Cultura,
+  Model.ParametrosDb;
+
+type
+  TCulturaRepository = class(TBaseRepository)
+  public
+    procedure Inserir(PCultura: TCultura);
+    procedure Atualizar(PCultura: TCultura);
+    procedure Excluir(PIdCultura: Integer);
+    function Listar(POrdenacao: string): TObjectList<TCultura>;
+    function Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
+  end;
+
+implementation
+
+procedure TCulturaRepository.Inserir(PCultura: TCultura);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LConnection := CriarConexao(TParametrosDb.NomeDatabase);
+  LQuery := TFDQuery.Create(nil);
+  try
+    LQuery.Connection := LConnection;
+
+    LQuery.SQL.Text :=
+      Format('INSERT INTO %s.cultura ' +
+      '(nome, id_tipocultura, data_plantio, ativo, foto) ' +
+      'VALUES (:nome,:id_tipocultura,:data_plantio,:ativo,:foto)',
+      [TParametrosDb.NomeSchema]);
+
+    LQuery.ParamByName('nome').AsString := PCultura.Nome;
+    LQuery.ParamByName('id_tipocultura').AsInteger := PCultura.IdTipoCultura;
+    LQuery.ParamByName('data_plantio').AsDate := PCultura.DataPlantio;
+    LQuery.ParamByName('ativo').AsBoolean := PCultura.Ativo;
+    LQuery.ParamByName('foto').AsBytes := PCultura.Foto;
+
+    LQuery.ExecSQL;
+
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+procedure TCulturaRepository.Atualizar(PCultura: TCultura);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LConnection := CriarConexao(TParametrosDb.NomeDatabase);
+  LQuery := TFDQuery.Create(nil);
+
+  try
+    LQuery.Connection := LConnection;
+
+    LQuery.SQL.Text :=
+      Format('UPDATE %s.cultura SET ' +
+      'nome=:nome, id_tipocultura=:id_tipocultura, data_plantio=:data_plantio, ' +
+      'ativo=:ativo, foto=:foto ' +
+      'WHERE id_cultura=:id',
+      [TParametrosDb.NomeSchema]);
+
+    LQuery.ParamByName('nome').AsString := PCultura.Nome;
+    LQuery.ParamByName('id_tipocultura').AsInteger := PCultura.IdTipoCultura;
+    LQuery.ParamByName('data_plantio').AsDate := PCultura.DataPlantio;
+    LQuery.ParamByName('ativo').AsBoolean := PCultura.Ativo;
+    LQuery.ParamByName('foto').AsBytes := PCultura.Foto;
+    LQuery.ParamByName('id').AsInteger := PCultura.IdCultura;
+
+    LQuery.ExecSQL;
+
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+procedure TCulturaRepository.Excluir(PIdCultura: Integer);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LConnection := CriarConexao(TParametrosDb.NomeDatabase);
+  LQuery := TFDQuery.Create(nil);
+
+  try
+    LQuery.Connection := LConnection;
+
+    LQuery.SQL.Text :=
+      Format('DELETE FROM %s.cultura WHERE id_cultura=:id',
+      [TParametrosDb.NomeSchema]);
+
+    LQuery.ParamByName('id').AsInteger := PIdCultura;
+
+    LQuery.ExecSQL;
+
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TCulturaRepository.Listar(POrdenacao: string): TObjectList<TCultura>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LCultura: TCultura;
+begin
+  Result := TObjectList<TCultura>.Create(True);
+
+  LConnection := CriarConexao(TParametrosDb.NomeDatabase);
+  LQuery := TFDQuery.Create(nil);
+
+  try
+    LQuery.Connection := LConnection;
+
+    LQuery.SQL.Text :=
+      Format('SELECT * FROM %s.cultura ORDER BY &POrdenacao',
+      [TParametrosDb.NomeSchema]);
+
+    LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
+
+    LQuery.Open;
+
+    while not LQuery.Eof do
+    begin
+      LCultura := TCultura.Create;
+
+      LCultura.IdCultura := LQuery.FieldByName('id_cultura').AsInteger;
+      LCultura.Nome := LQuery.FieldByName('nome').AsString;
+      LCultura.IdTipoCultura := LQuery.FieldByName('id_tipocultura').AsInteger;
+      LCultura.DataPlantio := LQuery.FieldByName('data_plantio').AsDateTime;
+      LCultura.Ativo := LQuery.FieldByName('ativo').AsBoolean;
+
+      Result.Add(LCultura);
+
+      LQuery.Next;
+    end;
+
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TCulturaRepository.Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LCultura: TCultura;
+begin
+  Result := TObjectList<TCultura>.Create(True);
+
+  LConnection := CriarConexao(TParametrosDb.NomeDatabase);
+  LQuery := TFDQuery.Create(nil);
+
+  try
+    LQuery.Connection := LConnection;
+
+    LQuery.SQL.Text :=
+      Format('SELECT * FROM %0:s.cultura ' +
+      'WHERE %0:s.sem_acento(nome::text) ilike %0:s.sem_acento(:PNome::text) ' +
+      'ORDER BY &POrdenacao',
+      [TParametrosDb.NomeSchema]);
+
+    LQuery.ParamByName('PNome').AsString := '%' + PBusca + '%';
+    LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
+
+    LQuery.Open;
+
+    while not LQuery.Eof do
+    begin
+      LCultura := TCultura.Create;
+
+      LCultura.IdCultura := LQuery.FieldByName('id_cultura').AsInteger;
+      LCultura.Nome := LQuery.FieldByName('nome').AsString;
+      LCultura.IdTipoCultura := LQuery.FieldByName('id_tipocultura').AsInteger;
+      LCultura.DataPlantio := LQuery.FieldByName('data_plantio').AsDateTime;
+      LCultura.Ativo := LQuery.FieldByName('ativo').AsBoolean;
+
+      Result.Add(LCultura);
+
+      LQuery.Next;
+    end;
+
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+end.

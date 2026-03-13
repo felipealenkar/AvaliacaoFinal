@@ -1,0 +1,78 @@
+unit Service.TipoCultura;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Model.TipoCultura,
+  Repository.TipoCultura,
+  FireDAC.Comp.Client;
+
+type
+  TTipoCulturaService = class
+  private
+    FTipoCulturaRepository: TTipoCulturaRepository;
+  public
+    constructor Create(PTipoCulturaRepository: TTipoCulturaRepository);
+    destructor Destroy; override;
+    procedure Salvar(PDescricao: string);
+    procedure Atualizar(PId: Integer; PDescricao: string);
+    procedure Excluir(PId: Integer);
+
+    function Listar: TObjectList<TTipoCultura>;
+  end;
+
+implementation
+{ TTipoCulturaService }
+
+procedure TTipoCulturaService.Atualizar(PId: Integer; PDescricao: string);
+var
+  LTipoCultura: TTipoCultura;
+begin
+  LTipoCultura := TTipoCultura.Create;
+  try
+    LTipoCultura.IdTipoCultura := PId;
+    LTipoCultura.Descricao := PDescricao;
+
+    FTipoCulturaRepository.Atualizar(LTipoCultura);
+  finally
+    LTipoCultura.Free;
+  end;
+end;
+
+constructor TTipoCulturaService.Create(PTipoCulturaRepository: TTipoCulturaRepository);
+begin
+  inherited Create;
+  FTipoCulturaRepository := PTipoCulturaRepository;
+end;
+
+destructor TTipoCulturaService.Destroy;
+begin
+  FTipoCulturaRepository.Free;
+  inherited;
+end;
+
+procedure TTipoCulturaService.Excluir(PId: Integer);
+begin
+  FTipoCulturaRepository.Excluir(PId);
+end;
+
+function TTipoCulturaService.Listar: TObjectList<TTipoCultura>;
+begin
+  Result := FTipoCulturaRepository.Listar;
+end;
+
+procedure TTipoCulturaService.Salvar(PDescricao: string);
+var
+  LTipoCultura: TTipoCultura;
+begin
+  LTipoCultura := TTipoCultura.Create;
+  try
+    LTipoCultura.Descricao := PDescricao;
+    FTipoCulturaRepository.Inserir(LTipoCultura);
+  finally
+    LTipoCultura.Free;
+  end;
+end;
+
+end.

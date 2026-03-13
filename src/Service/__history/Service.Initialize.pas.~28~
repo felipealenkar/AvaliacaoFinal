@@ -1,0 +1,86 @@
+unit Service.Initialize;
+
+interface
+
+uses
+  Model.ParametrosDb,
+  Database.Initialize,
+  Winapi.Windows,
+  System.SysUtils,
+  FireDAC.Comp.Client;
+type
+  TAppStarter = class
+  private
+    FDatabaseInitialize: TDatabaseInitialize;
+    procedure InstalarBancoDeDados;
+  public
+    constructor Create(PConnection: TFDConnection);
+    function PrepararAmbiente: Boolean;
+
+  end;
+
+
+implementation
+
+{ TAppStarter }
+
+function TAppStarter.PrepararAmbiente: Boolean;
+var
+  LDatabaseInitialize: TDatabaseInitialize;
+  BancoExiste: Boolean;
+begin
+  LDatabaseInitialize := TDatabaseInitialize.Create;
+  try
+    try
+      Result := True;
+      if LDatabaseInitialize.Conectar('postgres') then
+      begin
+        BancoExiste := LDatabaseInitialize.ExistirBancoDeDados;
+        if not BancoExiste then
+          MessageBox(0, PChar('!!!Bem vindo ao HortiSys!!!, ' + sLineBreak + sLineBreak +
+                      'Não foi encontrado o database ' + TParametrosDb.NomeDatabase + ', ele será criado.'),
+                      'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+          TAppStarter.InstalarBancoDeDados;
+          if not BancoExiste then
+            MessageBox(0, PChar('Banco de dados ' + TParametrosDb.NomeDatabase + ' criado com sucesso'),
+                      'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+      end;
+    except
+      on E:Exception do
+      begin
+        Result := False;
+        MessageBox(0, PChar(E.Message), 'HortiSys', MB_OK or MB_ICONERROR or MB_TASKMODAL);
+      end;
+    end;
+  finally
+    LDatabaseInitialize.free;
+  end;
+end;
+
+constructor TAppStarter.Create(PConnection: TFDConnection);
+begin
+  FDatabaseInitialize := TDatabaseInitialize.Create(PConnection);
+end;
+
+procedure TAppStarter.InstalarBancoDeDados;
+Var
+  LDatabaseInitialize: TDatabaseInitialize;
+begin
+  LDatabaseInitialize := TDatabaseInitialize.Create;
+  try
+    LDatabaseInitialize.CriarDatabase;
+    LDatabaseInitialize.Conectar(TParametrosDb.NomeDatabase);
+    LDatabaseInitialize.CriarSchema;
+    LDatabaseInitialize.CriarTabelaTipoCultura;
+    LDatabaseInitialize.CriarTabelaCultura;
+    LDatabaseInitialize.CriarTabelaManejo;
+  except
+    on E:Exception do
+      raise Exception.Create('Erro no processo de Criação do banco de dados' +
+            sLineBreak + sLineBreak + E.Message + sLineBreak + sLineBreak +
+                            'A aplicação não será inicializada.');
+  end;
+  LDatabaseInitialize.Free;
+end;
+
+end.

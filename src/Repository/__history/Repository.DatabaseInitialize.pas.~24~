@@ -1,0 +1,209 @@
+unit Repository.DatabaseInitialize;
+
+interface
+
+uses
+  Model.ParametrosDb,
+  System.SysUtils,
+  Data.Db, FireDAC.Phys.PG, FireDAC.Comp.Client, FireDAC.Stan.Param,
+  FireDAC.Stan.Def, FireDAC.DApt, FireDAC.VCLUI.Wait, FireDAC.Stan.Async, FireDAC.Comp.UI;
+
+type
+  TDatabaseInitialize = class (TObject)
+  private
+    FPgDriverL: TFDPhysPgDriverLink;
+    FConnection: TFDConnection;
+  public
+    procedure CriarDatabase;
+    procedure CriarSchema;
+    procedure CriarTabelaTipoCultura;
+    procedure CriarTabelaCultura;
+    procedure CriarTabelaManejo;
+    function ExistirBancoDeDados: Boolean;
+    constructor Create;
+    destructor Destroy; override;
+    function Conectar(const PDatabase: String): Boolean;
+  end;
+
+implementation
+
+{ TDatabaseInitialize }
+
+function TDatabaseInitialize.Conectar(const PDatabase: String): Boolean;
+begin
+  try
+    Result := True;
+    FConnection.close;
+    FConnection.Params.Clear;
+    FConnection.DriverName := 'PG';
+    FPgDriverL.VendorLib := 'C:\Program Files\PostgreSQL\18\bin\libpq.dll';
+    FConnection.Params.Values['Server'] := 'localhost';
+    FConnection.Params.Values['Port'] := TParametrosDb.Porta;
+    FConnection.Params.Values['User_Name'] := 'postgres';
+    FConnection.Params.Values['Password'] := TParametrosDb.SenhaPg;
+    FConnection.Params.Values['Database'] := PDatabase;
+    FConnection.Params.Values['CharacterSet'] := 'UTF8';
+    FConnection.LoginPrompt := False;
+    FConnection.Params.Values['SSLMode'] := 'disable';
+    FConnection.Open;
+  except
+    on E:Exception do
+      raise Exception.Create(Format('Erro de conexão com o banco de dados %s', [TParametrosDb.NomeDatabase])
+                            + sLineBreak + sLineBreak + E.ToString + sLineBreak + sLineBreak
+                            + 'A aplicação não será inicializada.');
+  end;
+end;
+
+constructor TDatabaseInitialize.Create;
+begin
+  FConnection := TFDConnection.Create(nil);
+  FPgDriverL := TFDPhysPgDriverLink.Create(nil);
+  TFDGUIxWaitCursor.Create(nil);
+end;
+
+procedure TDatabaseInitialize.CriarDatabase;
+var
+  LQuery: TFDQuery;
+begin
+  FConnection.Close;
+  FConnection.Params.Values['Database'] := 'postgres';
+  FConnection.Open;
+  LQuery := TFDQuery.Create(nil);
+
+  try
+    try
+      LQuery.Connection := FConnection;
+      LQuery.SQL.Text := 'SELECT 1 FROM pg_database WHERE datname = :dbname';
+      LQuery.ParamByName('dbname').AsString := TParametrosDb.NomeDatabase;
+      LQuery.Open;
+
+      if LQuery.IsEmpty then
+      begin
+        LQuery.close;
+        LQuery.sql.Clear;
+        LQuery.sql.Add('CREATE DATABASE "' + TParametrosDb.NomeDatabase + '"');
+        LQuery.sql.Add('ENCODING = ''UTF8''');
+        LQuery.sql.Add('TABLESPACE = pg_default');
+        LQuery.sql.Add('LC_COLLATE = ''Portuguese_Brazil.1252''');
+        LQuery.sql.Add('LC_CTYPE = ''Portuguese_Brazil.1252''');
+        LQuery.sql.Add('CONNECTION LIMIT = -1');
+        LQuery.ExecSQL;
+        LQuery.close;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao criar o banco de dados %s', [TParametrosDb.NomeDatabase])
+                              + sLineBreak + sLineBreak + E.ToString  + sLineBreak + sLineBreak
+                              + 'A aplicação não será inicializada.');
+    end;
+  finally
+    LQuery.Free;
+  end;
+end;
+
+procedure TDatabaseInitialize.CriarSchema;
+begin
+  try
+    FConnection.ExecSQL(Format('CREATE SCHEMA IF NOT EXISTS "%s"', [TParametrosDb.NomeSchema]));
+  except
+    on E:Exception do
+        raise Exception.Create(Format('Erro ao criar o schema %s', [TParametrosDb.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString
+                              + sLineBreak + sLineBreak + 'A aplicação não será inicializada.');
+  end;
+end;
+
+procedure TDatabaseInitialize.CriarTabelaCultura;
+begin
+  try
+    FConnection.ExecSQL(Format(
+      'CREATE TABLE IF NOT EXISTS "%s".cultura (' +
+      'id_cultura SERIAL PRIMARY KEY,' +
+      'nome VARCHAR(60) NOT NULL,' +
+      'id_tipocultura INTEGER NOT NULL,' +
+      'data_plantio DATE NOT NULL,' +
+      'ativo BOOLEAN NOT NULL DEFAULT TRUE,' +
+      'foto BYTEA,' +
+      'CONSTRAINT fk_tipocultura FOREIGN KEY (id_tipocultura) ' +
+      'REFERENCES "%s".tipocultura(id_tipocultura)' +
+      ')'
+    , [TParametrosDb.NomeSchema, TParametrosDb.NomeSchema]));
+  except
+    on E:Exception do
+        raise Exception.Create(Format('Erro ao criar a tabela %s.cultura', [TParametrosDb.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString
+                              + sLineBreak + sLineBreak + 'A aplicação não será inicializada.');
+  end;
+end;
+
+procedure TDatabaseInitialize.CriarTabelaManejo;
+begin
+  try
+    FConnection.ExecSQL(Format(
+      'CREATE TABLE IF NOT EXISTS "%s".manejo (' +
+      'id_manejo SERIAL PRIMARY KEY,' +
+      'id_cultura INTEGER NOT NULL,' +
+      'data DATE NOT NULL,' +
+      'tipo VARCHAR(40) NOT NULL,' +
+      'observacao TEXT,' +
+      'CONSTRAINT fk_cultura FOREIGN KEY (id_cultura) ' +
+      'REFERENCES "%s".cultura(id_cultura)' +
+      ')'
+    , [TParametrosDb.NomeSchema, TParametrosDb.NomeSchema]));
+  except
+    on E:Exception do
+        raise Exception.Create(Format('Erro ao criar a tabela %s.manejo', [TParametrosDb.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString
+                              + sLineBreak + sLineBreak + 'A aplicação não será inicializada.');
+  end;
+end;
+
+procedure TDatabaseInitialize.CriarTabelaTipoCultura;
+begin
+  try
+    FConnection.ExecSQL(Format('CREATE TABLE IF NOT EXISTS "%s".tipocultura(' +
+                        'id_tipocultura SERIAL PRIMARY KEY,' +
+                        'descricao VARCHAR(50) NOT NULL UNIQUE)', [TParametrosDb.NomeSchema]));
+  except
+    on E:Exception do
+        raise Exception.Create(Format('Erro ao criar a tabela %s.tipocultura', [TParametrosDb.NomeSchema])
+                                      + sLineBreak + sLineBreak + E.ToString
+                                      + sLineBreak + sLineBreak + 'A aplicação não será inicializada.');
+  end;
+end;
+
+destructor TDatabaseInitialize.Destroy;
+begin
+  FConnection.Free;
+  FPgDriverL.Free;
+  inherited;
+end;
+
+function TDatabaseInitialize.ExistirBancoDeDados: Boolean;
+var
+  LQuery: TFDQuery;
+begin
+  LQuery := TFDQuery.Create(nil);
+  try
+    try
+      if Conectar('postgres') then
+      begin
+        LQuery.Connection := FConnection;
+        LQuery.SQL.Text := 'SELECT 1 FROM pg_database WHERE datname = :dbname';
+        LQuery.ParamByName('dbname').AsString := TParametrosDb.NomeDatabase;
+        LQuery.Open;
+        Result := not LQuery.IsEmpty;
+      end
+      else
+        Result := False;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao verificar se o banco de dados %s existe', [TParametrosDb.NomeDatabase])
+                                      + sLineBreak + sLineBreak + E.ToString
+                                      + sLineBreak + sLineBreak + 'A aplicação não será inicializada.');
+    end
+  finally
+    LQuery.Free;
+  end;
+end;
+end.

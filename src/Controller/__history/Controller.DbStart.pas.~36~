@@ -1,0 +1,47 @@
+unit Controller.DbStart;
+
+interface
+
+uses
+  Winapi.Windows,
+  System.SysUtils,
+  Model.ParametrosDb,
+  Service.DbStart;
+
+type
+  TDBStartController = class
+  private
+    FDbStartService: TDbStartService;
+  public
+    constructor Create(PDbStartService: TDbStartService);
+    destructor Destroy; override;
+    function IniciarAmbiente: Boolean;
+  end;
+implementation
+
+{ TDBStartController }
+
+constructor TDBStartController.Create(PDbStartService: TDbStartService);
+begin
+  inherited Create;
+  FDbStartService := PDbStartService;
+end;
+
+destructor TDBStartController.Destroy;
+begin
+  FDbStartService.Free;
+  inherited;
+end;
+
+function TDBStartController.IniciarAmbiente: Boolean;
+begin
+  Result := True;
+  if not FDbStartService.VerificarAmbiente then
+  begin
+    Result := False;
+    Exit;
+  end;
+  FDbStartService.InstalarBancoDeDados;
+end;
+
+end.

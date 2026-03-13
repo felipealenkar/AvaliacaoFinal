@@ -1,0 +1,26 @@
+unit Model.Manejo;
+
+interface
+
+uses
+  System.SysUtils;
+
+type
+  TManejo = class
+  private
+    FIdManejo: Integer;
+    FIdCultura: Integer;
+    FData: TDate;
+    FTipo: string;
+    FObservacao: string;
+  public
+    property IdManejo: Integer read FIdManejo write FIdManejo;
+    property IdCultura: Integer read FIdCultura write FIdCultura;
+    property Data: TDate read FData write FData;
+    property Tipo: string read FTipo write FTipo;
+    property Observacao: string read FObservacao write FObservacao;
+  end;
+
+implementation
+
+end.
