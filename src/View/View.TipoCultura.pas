@@ -1,0 +1,274 @@
+unit View.TipoCultura;
+
+interface
+
+uses
+  DataModule.Icons, View.RelatorioTipoCultura, Model.TipoCultura, Controller.TipoCultura, System.Generics.Collections,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
+  Vcl.Grids, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList;
+
+type
+  TFrmTipoCultura = class(TForm)
+    PnlTipoCultura: TPanel;
+    grpTipoCultura: TGroupBox;
+    StrGrdTipoCultura: TStringGrid;
+    VimgLTipoCultura: TVirtualImageList;
+    FlwPnlTipoCultura: TFlowPanel;
+    SbtnSair: TSpeedButton;
+    SbtnRelatorio: TSpeedButton;
+    SbtnExcluir: TSpeedButton;
+    SbtnEditar: TSpeedButton;
+    SbtnNovo: TSpeedButton;
+    RgOrdenacao: TRadioGroup;
+    LblLocalizar: TLabel;
+    EdtLocalizar: TEdit;
+    procedure SbtnSairClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
+    procedure StrGrdTipoCulturaDrawCell(Sender: TObject; ACol, ARow: LongInt;
+      Rect: TRect; State: TGridDrawState);
+    procedure RgOrdenacaoClick(Sender: TObject);
+    procedure SbtnNovoClick(Sender: TObject);
+    procedure SbtnEditarClick(Sender: TObject);
+    procedure SbtnExcluirClick(Sender: TObject);
+    procedure EdtLocalizarChange(Sender: TObject);
+    procedure SbtnRelatorioClick(Sender: TObject);
+    procedure StrGrdTipoCulturaDblClick(Sender: TObject);
+  private
+    FTipoCulturaController: TTipoCulturaController;
+    procedure ConfigurarGrid;
+    procedure CarregarGrid(PAcao: String);
+    function ObterOrdenacao: string;
+    function PedirDescricao(const PTitulo, PValorInicial: string): string;
+    procedure Atualizar;
+    procedure Inserir;
+    procedure Excluir;
+    { Private declarations }
+  public
+    constructor Create(POwner: TComponent; PTipoCulturaController: TTipoCulturaController); reintroduce;
+    destructor Destroy; override;
+    { Public declarations }
+  end;
+
+  const CListar: string = 'Listar';
+  const CPesquisar: string = 'Pesquisar';
+
+implementation
+
+{$R *.dfm}
+
+uses Factory.Provider;
+
+{ TFrmTipoCultura }
+
+procedure TFrmTipoCultura.CarregarGrid(PAcao: String);
+var
+  LLista: TObjectList<TTipoCultura>;
+  I: Integer;
+begin
+  StrGrdTipoCultura.BeginUpdate;
+  LLista := nil;
+  try
+    if PAcao = CListar then LLista := FTipoCulturaController.Listar(ObterOrdenacao);
+    if PAcao = CPesquisar then LLista := FTipoCulturaController.Pesquisar(EdtLocalizar.Text, ObterOrdenacao);
+    
+    StrGrdTipoCultura.RowCount := LLista.Count + 1;
+
+    for I := 0 to LLista.Count - 1 do
+    begin
+      StrGrdTipoCultura.Cells[0, I + 1] := LLista[I].IdTipoCultura.ToString;
+      StrGrdTipoCultura.Cells[1, I + 1] := LLista[I].Descricao;
+    end;
+
+    if StrGrdTipoCultura.RowCount > 1 then
+      StrGrdTipoCultura.Row := 1;
+  finally
+    StrGrdTipoCultura.EndUpdate;
+    LLista.Free;
+  end;
+end;
+
+procedure TFrmTipoCultura.ConfigurarGrid;
+begin
+  StrGrdTipoCultura.FixedRows := 1;
+  StrGrdTipoCultura.Cells[0,0] := 'Id';
+  StrGrdTipoCultura.Cells[1,0] := 'Descrição';
+  StrGrdTipoCultura.ColWidths[0] := 50;
+  StrGrdTipoCultura.ColWidths[1] := 250;
+  RgOrdenacao.ItemIndex := 0;
+end;
+
+constructor TFrmTipoCultura.Create(POwner: TComponent; PTipoCulturaController: TTipoCulturaController);
+begin
+  inherited Create(POwner);
+  FTipoCulturaController := PTipoCulturaController;
+  ConfigurarGrid;
+end;
+
+destructor TFrmTipoCultura.Destroy;
+begin
+  FTipoCulturaController.Free;
+  inherited;
+end;
+
+procedure TFrmTipoCultura.EdtLocalizarChange(Sender: TObject);
+begin
+  CarregarGrid(CPesquisar);
+end;
+
+procedure TFrmTipoCultura.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+end;
+
+procedure TFrmTipoCultura.FormDestroy(Sender: TObject);
+begin
+  //Isso aqui envia a mensagem ao form pai para habilitar  o botão que o chamou.
+  if (Owner is TForm) and not (csDestroying in TForm(Owner).ComponentState) then
+    PostMessage(TForm(Owner).Handle, WM_USER + 1234, 0, 0);
+end;
+
+procedure TFrmTipoCultura.FormShow(Sender: TObject);
+begin
+  CarregarGrid(CListar);
+  EdtLocalizar.SetFocus;
+end;
+
+function TFrmTipoCultura.ObterOrdenacao: string;
+begin
+  case RgOrdenacao.ItemIndex of
+    0: Result := 'id_tipocultura';
+    1: Result := 'descricao';
+    else
+      Result := 'id_tipocultura';
+  end;
+end;
+
+function TFrmTipoCultura.PedirDescricao(const PTitulo, PValorInicial: string): string;
+begin
+  Result := Trim(InputBox(PTitulo, 'Descrição:', PValorInicial));
+end;
+
+procedure TFrmTipoCultura.RgOrdenacaoClick(Sender: TObject);
+begin
+  CarregarGrid(CListar);
+end;
+
+procedure TFrmTipoCultura.Atualizar;
+var
+  LId: Integer;
+  LDescricaoAtual: string;
+  LNovaDescricao: string;
+begin
+  if StrGrdTipoCultura.Row <= 0 then
+  begin
+    MessageBox(Handle, PChar('Selecione um registro.'), 'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    Exit;
+  end;
+
+  LId := StrToInt(StrGrdTipoCultura.Cells[0, StrGrdTipoCultura.Row]);
+  LDescricaoAtual := StrGrdTipoCultura.Cells[1, StrGrdTipoCultura.Row];
+  LNovaDescricao := PedirDescricao('Editar Tipo de Cultura', LDescricaoAtual);
+
+  if LNovaDescricao = '' then
+    Exit;
+
+  FTipoCulturaController.Atualizar(LId, LNovaDescricao);
+  CarregarGrid(CListar);
+end;
+
+procedure TFrmTipoCultura.SbtnEditarClick(Sender: TObject);
+begin
+  Atualizar;
+end;
+
+procedure TFrmTipoCultura.SbtnExcluirClick(Sender: TObject);
+begin
+  Excluir;
+end;
+
+procedure TFrmTipoCultura.Excluir;
+var
+  LId: Integer;
+begin
+  if StrGrdTipoCultura.Row <= 0 then
+  begin
+    MessageBox(Handle, PChar('Selecione um registro.'), 'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    Exit;
+  end;
+
+  LId := StrToIntDef(StrGrdTipoCultura.Cells[0, StrGrdTipoCultura.Row], 0);
+
+  if LId = 0 then
+    Exit;
+
+  if MessageBox(Handle, PChar('Confirma a exclusão do registro?.'), 'HortiSys', MB_YESNO or MB_ICONQUESTION or MB_TASKMODAL) = IDYES then
+  begin
+    FTipoCulturaController.Excluir(LId);
+    CarregarGrid(CListar);
+  end;
+end;
+
+procedure TFrmTipoCultura.SbtnNovoClick(Sender: TObject);
+begin
+  Inserir;
+end;
+
+procedure TFrmTipoCultura.Inserir;
+var
+  LDescricao: String;
+begin
+  LDescricao := PedirDescricao('Novo tipo de cultura', '');
+
+  if Trim(LDescricao) = '' then
+    Exit;
+
+  FTipoCulturaController.Inserir(LDescricao);
+  CarregarGrid(CListar);
+end;
+
+procedure TFrmTipoCultura.SbtnRelatorioClick(Sender: TObject);
+var
+  LFrmRelatorioTipoCultura: TFrmRelatorioTipoCultura;
+begin
+  LFrmRelatorioTipoCultura := TProviderFactory.NewRelatorioTipoCulturaView(Self);
+  LFrmRelatorioTipoCultura.CarregarRelatorio(ObterOrdenacao);
+end;
+
+procedure TFrmTipoCultura.SbtnSairClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TFrmTipoCultura.StrGrdTipoCulturaDblClick(Sender: TObject);
+begin
+  Atualizar;
+end;
+
+procedure TFrmTipoCultura.StrGrdTipoCulturaDrawCell(Sender: TObject; ACol,
+  ARow: Integer; Rect: TRect; State: TGridDrawState);
+var
+  Texto: string;
+begin
+  if ARow = 0 then
+  begin
+    Texto := StrGrdTipoCultura.Cells[ACol, ARow];
+
+    StrGrdTipoCultura.Canvas.Brush.Color := clBtnFace;
+    StrGrdTipoCultura.Canvas.FillRect(Rect);
+
+    StrGrdTipoCultura.Canvas.Font.Style := [fsBold];
+
+    DrawText(
+      StrGrdTipoCultura.Canvas.Handle,
+      PChar(Texto),
+      Length(Texto),
+      Rect,
+      DT_LEFT or DT_VCENTER or DT_SINGLELINE
+    );
+  end;
+end;
+
+end.
