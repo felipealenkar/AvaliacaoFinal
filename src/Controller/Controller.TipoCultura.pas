@@ -4,7 +4,7 @@ interface
 
 uses
   System.Generics.Collections,
-  Model.TipoCultura,
+  Model.TipoCultura, Model.Cultura,
   Service.TipoCultura;
 
 type
@@ -18,6 +18,7 @@ type
     procedure Atualizar(PId: Integer; PDescricao: string);
     procedure Excluir(PId: Integer);
     function Listar(POrdenacao: string): TObjectList<TTipoCultura>;
+    function ListarCulturasVinculadas(PId_TipoCultura: Integer): TObjectList<TCultura>;
     function Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoCultura>;
   end;
 
@@ -71,6 +72,11 @@ end;
 function TTipoCulturaController.Listar(POrdenacao: string): TObjectList<TTipoCultura>;
 begin
   Result := FTipoCulturaService.Listar(POrdenacao);
+end;
+
+function TTipoCulturaController.ListarCulturasVinculadas(PId_TipoCultura: Integer): TObjectList<TCultura>;
+begin
+  Result := FTipoCulturaService.ListarCulturasVinculadas(PId_TipoCultura);
 end;
 
 function TTipoCulturaController.Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoCultura>;

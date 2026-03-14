@@ -3,8 +3,8 @@ unit Service.TipoCultura;
 interface
 
 uses
-  System.Generics.Collections,
-  Model.TipoCultura,
+  System.Generics.Collections, System.SysUtils,
+  Model.TipoCultura, Model.Cultura,
   Repository.TipoCultura;
 
 type
@@ -17,9 +17,10 @@ type
 
     procedure Inserir(PTipoCultura: TTipoCultura);
     procedure Atualizar(PTipoCultura: TTipoCultura);
-    procedure Excluir(PId: Integer);
+    procedure Excluir(PIdTipoCultura: Integer);
 
     function Listar(POrdenacao: string): TObjectList<TTipoCultura>;
+    function ListarCulturasVinculadas(PId_TipoCultura: Integer): TObjectList<TCultura>;
     function Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoCultura>;
   end;
 
@@ -28,6 +29,9 @@ implementation
 
 procedure TTipoCulturaService.Atualizar(PTipoCultura: TTipoCultura);
 begin
+  if FTipoCulturaRepository.ExisteDescricao(PTipoCultura.Descricao, PTipoCultura.IdTipoCultura) then
+    raise Exception.Create('Já existe um tipo de cultura cadastrado com este nome.');
+
   FTipoCulturaRepository.Atualizar(PTipoCultura);
 end;
 
@@ -43,14 +47,22 @@ begin
   inherited;
 end;
 
-procedure TTipoCulturaService.Excluir(PId: Integer);
+procedure TTipoCulturaService.Excluir(PIdTipoCultura: Integer);
 begin
-  FTipoCulturaRepository.Excluir(PId);
+  if FTipoCulturaRepository.ExisteNaTabelaCultura(PIdTipoCultura) then
+    raise Exception.Create('Não é possível excluir tipos de cultura que estiverem sendo usados em culturas');
+
+  FTipoCulturaRepository.Excluir(PIdTipoCultura);
 end;
 
 function TTipoCulturaService.Listar(POrdenacao: string): TObjectList<TTipoCultura>;
 begin
   Result := FTipoCulturaRepository.Listar(POrdenacao);
+end;
+
+function TTipoCulturaService.ListarCulturasVinculadas(PId_TipoCultura: Integer): TObjectList<TCultura>;
+begin
+  Result := FTipoCulturaRepository.ListarCulturasVinculadas(PId_TipoCultura);
 end;
 
 function TTipoCulturaService.Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoCultura>;
@@ -60,6 +72,9 @@ end;
 
 procedure TTipoCulturaService.Inserir(PTipoCultura: TTipoCultura);
 begin
+  if FTipoCulturaRepository.ExisteDescricao(PTipoCultura.Descricao, PTipoCultura.IdTipoCultura) then
+    raise Exception.Create('Já existe um tipo de cultura cadastrado com este nome.');
+
   FTipoCulturaRepository.Inserir(PTipoCultura);
 end;
 end.

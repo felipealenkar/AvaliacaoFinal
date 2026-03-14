@@ -2183,9 +2183,9 @@ object FrmTipoCultura: TFrmTipoCultura
       end
       object StrGrdTipoCultura: TStringGrid
         Left = 24
-        Top = 107
-        Width = 618
-        Height = 257
+        Top = 128
+        Width = 385
+        Height = 236
         Anchors = [akLeft, akTop, akRight, akBottom]
         BevelOuter = bvNone
         ColCount = 2
@@ -2195,17 +2195,18 @@ object FrmTipoCultura: TFrmTipoCultura
         RowCount = 8
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -19
+        Font.Height = -16
         Font.Name = 'Segoe UI'
         Font.Style = []
         Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goFixedRowDefAlign]
         ParentCtl3D = False
         ParentFont = False
         ScrollBars = ssVertical
-        TabOrder = 0
+        TabOrder = 1
         StyleElements = [seFont, seBorder]
         OnDblClick = StrGrdTipoCulturaDblClick
         OnDrawCell = StrGrdTipoCulturaDrawCell
+        OnSelectCell = StrGrdTipoCulturaSelectCell
         ColWidths = (
           75
           69)
@@ -2222,7 +2223,7 @@ object FrmTipoCultura: TFrmTipoCultura
         Align = alBottom
         Color = 14149085
         ParentBackground = False
-        TabOrder = 1
+        TabOrder = 2
         DesignSize = (
           618
           121)
@@ -2380,7 +2381,7 @@ object FrmTipoCultura: TFrmTipoCultura
         ParentBackground = False
         ParentColor = False
         ParentFont = False
-        TabOrder = 2
+        TabOrder = 3
         OnClick = RgOrdenacaoClick
       end
       object EdtLocalizar: TEdit
@@ -2394,8 +2395,46 @@ object FrmTipoCultura: TFrmTipoCultura
         Font.Name = 'Segoe UI'
         Font.Style = []
         ParentFont = False
-        TabOrder = 3
+        TabOrder = 0
         OnChange = EdtLocalizarChange
+      end
+      object StrGrdCulturasVinculadas: TStringGrid
+        Left = 424
+        Top = 128
+        Width = 218
+        Height = 236
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        BevelOuter = bvNone
+        ColCount = 2
+        Ctl3D = True
+        DefaultColWidth = 75
+        DefaultRowHeight = 28
+        RowCount = 12
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -16
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goFixedRowDefAlign]
+        ParentCtl3D = False
+        ParentFont = False
+        ScrollBars = ssVertical
+        TabOrder = 4
+        StyleElements = [seFont, seBorder]
+        OnDrawCell = StrGrdCulturasVinculadasDrawCell
+        RowHeights = (
+          28
+          28
+          28
+          24
+          28
+          28
+          28
+          28
+          28
+          28
+          28
+          28)
       end
     end
   end

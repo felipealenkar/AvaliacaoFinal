@@ -1,0 +1,34 @@
+unit Controller.ApiCultura;
+
+interface
+
+uses
+  Service.ApiCultura,
+  System.SysUtils,
+  System.Generics.Collections,
+  System.Classes;
+
+type
+  TApiController = class
+  private
+    FApiCulturaService: TApiCulturaService;
+  public
+    constructor Create(PApiCulturaService: TApiCulturaService);
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{ TCulturaService }
+
+constructor TApiController.Create(PApiCulturaService: TApiCulturaService);
+begin
+  inherited Create;
+  FApiCulturaService := FApiCulturaService;
+end;
+
+destructor TApiController.Destroy;
+begin
+  FApiCulturaService.Free;
+  inherited;
+end;

@@ -1,0 +1,56 @@
+unit Service.ApiCultura;
+
+interface
+
+uses
+  Repository.ApiCultura,
+  System.SysUtils,
+  System.Generics.Collections,
+  System.Classes;
+
+type
+  TCulturaApiService = class
+  private
+    FCulturaApiRepository: TCulturaApiRepository;
+  public
+    constructor Create(PCulturaApiRepository: TCulturaApiRepository);
+    destructor Destroy; override;
+    function ObterUrlFotoPorApi(PNome: String): TMemoryStream;
+  end;
+
+implementation
+
+function TCulturaApiService.ObterUrlFotoPorApi(PNome: String): TMemoryStream;
+var
+  LNome, LUrlImagem: string;
+begin
+  LNome := FCulturaApiRepository.ObterNomeCientifico(PNome);
+  Showmessage(LNome);
+  LUrlImagem := FCulturaApiRepository.ObterUrlFotoPorApiTrefle(LNome);
+  Showmessage(LUrlImagem);
+  if LUrlImagem.Trim.IsEmpty then
+  begin
+    LUrlImagem := FCulturaApiRepository.ObterUrlFotoPorApiPerenual(LNome);
+    Showmessage(LUrlImagem);
+  end;
+    if LUrlImagem.Trim.IsEmpty then
+      raise Exception.CreateFmt('A planta "%s" (%s) foi localizada, mas não possui foto disponível.', [PNome, LNome]);
+
+  Result := FCulturaApiRepository.ObterImagemComTNetHttp(LUrlImagem);
+end;
+
+{ TCulturaService }
+
+constructor TCulturaApiService.Create(PCulturaApiRepository: TCulturaApiRepository);
+begin
+  inherited Create;
+  FCulturaApiRepository := PCulturaApiRepository;
+end;
+
+destructor TCulturaApiService.Destroy;
+begin
+  FCulturaApiRepository.Free;
+  inherited;
+end;
+
+end.

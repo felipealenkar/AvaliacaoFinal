@@ -95,7 +95,7 @@ var
   LFrmRelatorioTipoCultura: TFrmRelatorioTipoCultura;
 begin
   LFrmRelatorioTipoCultura := TProviderFactory.NewRelatorioTipoCulturaView(Self);
-  LFrmRelatorioTipoCultura.CarregarRelatorio('id_tipocultura');
+  LFrmRelatorioTipoCultura.CarregarRelatorio('', 'id_tipocultura');
 end;
 
 procedure TFrmPrincipal.SbtnSairClick(Sender: TObject);

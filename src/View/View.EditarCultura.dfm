@@ -4,8 +4,8 @@ object FrmEditarCultura: TFrmEditarCultura
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Cadastros > Cultura > Preencher'
-  ClientHeight = 545
-  ClientWidth = 393
+  ClientHeight = 495
+  ClientWidth = 414
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -2128,19 +2128,20 @@ object FrmEditarCultura: TFrmEditarCultura
     00427FFFFFFFFFFFFFFFFFFFFFFFE400028BFFFFFFFFFFFFFFFFFFFFFFFFE400
     280FFFFFFFFFFFFFFFFFFFFFFFFFE42E807FFFFFFFFFFFFFFFFFFFFFFFFF}
   Position = poScreenCenter
+  OnShow = FormShow
   TextHeight = 15
   object PnlEditarCultura: TPanel
     Left = 0
     Top = 0
-    Width = 393
-    Height = 545
+    Width = 414
+    Height = 495
     Align = alClient
     Color = 14214623
     ParentBackground = False
     TabOrder = 0
-    DesignSize = (
-      393
-      545)
+    ExplicitLeft = 8
+    ExplicitWidth = 471
+    ExplicitHeight = 545
     object LblTipoCultura: TLabel
       Left = 217
       Top = 15
@@ -2173,25 +2174,34 @@ object FrmEditarCultura: TFrmEditarCultura
       Color = 14214624
       ParentColor = False
     end
+    object ImgFoto: TImage
+      Left = 171
+      Top = 122
+      Width = 220
+      Height = 220
+      Center = True
+      Proportional = True
+      Stretch = True
+    end
     object SbtnAbrirImg: TSpeedButton
       AlignWithMargins = True
       Left = 20
-      Top = 122
-      Width = 45
+      Top = 115
+      Width = 135
       Height = 45
-      Margins.Left = 0
+      Margins.Left = 1
       Margins.Top = 0
       Margins.Right = 0
       Margins.Bottom = 0
-      Anchors = [akBottom]
       BiDiMode = bdLeftToRight
+      Caption = 'Abrir arquivo'
       ImageIndex = 0
       ImageName = 'Abrir'
       Images = VimgLCulturaMenor
       Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 3093275
-      Font.Height = -21
+      Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       Margin = 0
@@ -2203,15 +2213,15 @@ object FrmEditarCultura: TFrmEditarCultura
     object SbtnImgPorApi: TSpeedButton
       AlignWithMargins = True
       Left = 20
-      Top = 172
-      Width = 45
+      Top = 160
+      Width = 135
       Height = 45
-      Margins.Left = 0
+      Margins.Left = 1
       Margins.Top = 0
       Margins.Right = 0
       Margins.Bottom = 0
-      Anchors = [akBottom]
       BiDiMode = bdLeftToRight
+      Caption = 'Obter na Web'
       ImageIndex = 2
       ImageName = 'Api'
       Images = VimgLCulturaMenor
@@ -2219,34 +2229,34 @@ object FrmEditarCultura: TFrmEditarCultura
       Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 3093275
-      Font.Height = -21
+      Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       Margin = 0
       ParentFont = False
       ParentBiDiMode = False
       StyleElements = [seClient, seBorder]
-      OnClick = SbtnAbrirImgClick
+      OnClick = SbtnImgPorApiClick
     end
     object SbtnLimparImg: TSpeedButton
       AlignWithMargins = True
       Left = 20
-      Top = 222
-      Width = 45
+      Top = 205
+      Width = 135
       Height = 45
-      Margins.Left = 0
+      Margins.Left = 1
       Margins.Top = 0
       Margins.Right = 0
       Margins.Bottom = 0
-      Anchors = [akBottom]
       BiDiMode = bdLeftToRight
+      Caption = 'Limpar'
       ImageIndex = 1
       ImageName = 'Reciclar'
       Images = VimgLCulturaMenor
       Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 3093275
-      Font.Height = -21
+      Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       Margin = 0
@@ -2254,15 +2264,6 @@ object FrmEditarCultura: TFrmEditarCultura
       ParentBiDiMode = False
       StyleElements = [seClient, seBorder]
       OnClick = SbtnLimparImgClick
-    end
-    object ImgFoto: TImage
-      Left = 88
-      Top = 122
-      Width = 268
-      Height = 268
-      Center = True
-      Proportional = True
-      Stretch = True
     end
     object EdtDescricao: TEdit
       Left = 20
@@ -2283,7 +2284,7 @@ object FrmEditarCultura: TFrmEditarCultura
     object CbbTipoCultura: TComboBox
       Left = 217
       Top = 31
-      Width = 153
+      Width = 177
       Height = 23
       Style = csDropDownList
       TabOrder = 2
@@ -2299,7 +2300,7 @@ object FrmEditarCultura: TFrmEditarCultura
       TabOrder = 1
     end
     object ChkAtiva: TCheckBox
-      Left = 311
+      Left = 319
       Top = 79
       Width = 63
       Height = 17
@@ -2311,8 +2312,8 @@ object FrmEditarCultura: TFrmEditarCultura
     object FlwPnlCultura: TFlowPanel
       AlignWithMargins = True
       Left = 23
-      Top = 416
-      Width = 347
+      Top = 366
+      Width = 368
       Height = 117
       Margins.Left = 22
       Margins.Right = 22
@@ -2321,18 +2322,46 @@ object FrmEditarCultura: TFrmEditarCultura
       Color = 14214623
       ParentBackground = False
       TabOrder = 5
+      ExplicitTop = 416
       DesignSize = (
-        347
+        368
         117)
+      object SpeedButton1: TSpeedButton
+        AlignWithMargins = True
+        Left = 18
+        Top = 11
+        Width = 100
+        Height = 100
+        Margins.Left = 17
+        Margins.Top = 10
+        Margins.Right = 0
+        Margins.Bottom = 5
+        Anchors = [akBottom]
+        Caption = 'Ajuda'
+        ImageIndex = 2
+        ImageName = 'Ajuda'
+        Images = VimgLCultura
+        Flat = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 3093275
+        Font.Height = -21
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        Layout = blGlyphTop
+        Margin = 5
+        ParentFont = False
+        StyleElements = [seClient, seBorder]
+        OnClick = SpeedButton1Click
+      end
       object SbtnSalvar: TSpeedButton
         AlignWithMargins = True
-        Left = 49
+        Left = 135
         Top = 11
         Width = 99
         Height = 100
-        Margins.Left = 48
+        Margins.Left = 17
         Margins.Top = 10
-        Margins.Right = 22
+        Margins.Right = 0
         Margins.Bottom = 5
         Anchors = [akBottom]
         Caption = 'Salvar'
@@ -2353,13 +2382,13 @@ object FrmEditarCultura: TFrmEditarCultura
       end
       object SbtnSair: TSpeedButton
         AlignWithMargins = True
-        Left = 194
+        Left = 251
         Top = 11
         Width = 100
         Height = 100
-        Margins.Left = 24
+        Margins.Left = 17
         Margins.Top = 10
-        Margins.Right = 22
+        Margins.Right = 0
         Margins.Bottom = 5
         Anchors = [akBottom]
         Caption = 'Sair'
@@ -2379,6 +2408,20 @@ object FrmEditarCultura: TFrmEditarCultura
         OnClick = SbtnSairClick
       end
     end
+    object RgAPIs: TRadioGroup
+      Left = 30
+      Top = 264
+      Width = 135
+      Height = 78
+      Caption = 'APIs de busca'
+      Color = 14214624
+      Items.Strings = (
+        'GBIF'
+        'Trefle')
+      ParentBackground = False
+      ParentColor = False
+      TabOrder = 6
+    end
   end
   object VimgLCultura: TVirtualImageList
     Images = <
@@ -2391,16 +2434,21 @@ object FrmEditarCultura: TFrmEditarCultura
         CollectionIndex = 9
         CollectionName = 'Salvar'
         Name = 'Salvar'
+      end
+      item
+        CollectionIndex = 14
+        CollectionName = 'Ajuda'
+        Name = 'Ajuda'
       end>
     ImageCollection = DmIcons.ImgCltIcons
     Width = 60
     Height = 60
-    Left = 168
+    Left = 240
     Top = 168
   end
   object DlgOpenPicImg: TOpenPictureDialog
-    Left = 260
-    Top = 170
+    Left = 316
+    Top = 154
   end
   object VimgLCulturaMenor: TVirtualImageList
     Images = <
@@ -2420,9 +2468,9 @@ object FrmEditarCultura: TFrmEditarCultura
         Name = 'Api'
       end>
     ImageCollection = DmIcons.ImgCltIcons
-    Width = 40
-    Height = 40
-    Left = 176
-    Top = 232
+    Width = 35
+    Height = 35
+    Left = 272
+    Top = 248
   end
 end

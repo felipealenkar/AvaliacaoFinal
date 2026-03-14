@@ -88,7 +88,7 @@ object FrmCultura: TFrmCultura
         RowCount = 8
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -19
+        Font.Height = -16
         Font.Name = 'Segoe UI'
         Font.Style = []
         Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goFixedRowDefAlign]

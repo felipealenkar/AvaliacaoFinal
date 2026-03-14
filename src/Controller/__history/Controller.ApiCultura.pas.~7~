@@ -1,0 +1,42 @@
+unit Controller.ApiCultura;
+
+interface
+
+uses
+  Service.ApiCultura,
+  System.SysUtils,
+  System.Generics.Collections,
+  System.Classes;
+
+type
+  TApiController = class
+  private
+    FCulturaApiService: TCulturaApiService;
+  public
+    constructor Create(PCulturaApiService: TCulturaApiService);
+    destructor Destroy; override;
+  function ConsultarFotoApi(PNome: String): string;
+  end;
+
+implementation
+
+{ TCulturaService }
+
+function TApiController.ConsultarFotoApi(PNome: String): string;
+begin
+  Result := FCulturaApiService.ConsultarFotoApi(PNome);
+end;
+
+constructor TApiController.Create(PCulturaApiService: TCulturaApiService);
+begin
+  inherited Create;
+  FCulturaApiService := PCulturaApiService;
+end;
+
+destructor TApiController.Destroy;
+begin
+  FCulturaApiService.Free;
+  inherited;
+end;
+
+end.

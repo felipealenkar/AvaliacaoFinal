@@ -4,7 +4,7 @@ interface
 
 uses
   DataModule.Icons, View.EditarCultura, View.RelatorioTipoCultura, Model.TipoCultura, Model.Cultura,
-  Controller.Cultura, Controller.TipoCultura,
+  Controller.Cultura, Controller.TipoCultura, Controller.ApiCultura,
   System.Generics.Collections,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
@@ -47,10 +47,12 @@ type
     FTipoCulturaController: TTipoCulturaController;
     procedure ConfigurarGrid;
     procedure CarregarGrid(PAcao: String);
+    procedure PintarPrimeiraLinhaNaGrid(Sender: TObject; ACol,
+      ARow: LongInt; Rect: TRect; State: TGridDrawState);
     procedure CarregarFotoCultura(PIdCultura: Integer);
     function ObterOrdenacao: string;
     procedure Inserir;
-    procedure Editar;
+    procedure Atualizar;
     procedure Excluir;
     function BoolToSimNao(PValor: Boolean): string;
     { Private declarations }
@@ -207,12 +209,42 @@ begin
   end;
 end;
 
-procedure TFrmCultura.RgOrdenacaoClick(Sender: TObject);
+procedure TFrmCultura.PintarPrimeiraLinhaNaGrid(Sender: TObject; ACol,
+  ARow: LongInt; Rect: TRect; State: TGridDrawState);
+var
+  Texto: string;
+  LGrid: TStringGrid;
 begin
-  CarregarGrid(CListar);
+  if not (Sender is TStringGrid) then
+    Exit;
+
+  LGrid := TStringGrid(Sender);
+
+  if ARow = 0 then
+  begin
+    Texto := LGrid.Cells[ACol, ARow];
+
+    LGrid.Canvas.Brush.Color := clBtnFace;
+    LGrid.Canvas.FillRect(Rect);
+
+    LGrid.Canvas.Font.Style := [fsBold];
+
+    DrawText(
+      LGrid.Canvas.Handle,
+      PChar(Texto),
+      Length(Texto),
+      Rect,
+      DT_LEFT or DT_VCENTER or DT_SINGLELINE
+    );
+  end;
 end;
 
-procedure TFrmCultura.Editar;
+procedure TFrmCultura.RgOrdenacaoClick(Sender: TObject);
+begin
+  CarregarGrid(CPesquisar);
+end;
+
+procedure TFrmCultura.Atualizar;
 var
   LFrmEditarCultura: TFrmEditarCultura;
   LIdCultura: Integer;
@@ -229,7 +261,7 @@ begin
   if LIdCultura = 0 then
     Exit;
 
-  LFrmEditarCultura := TFrmEditarCultura.Create(Self, FCulturaController, FTipoCulturaController);
+  LFrmEditarCultura := TFrmEditarCultura.Create(Self);
   try
     LFrmEditarCultura.ModoEdicao(LIdCultura);
     LFrmEditarCultura.ShowModal;
@@ -241,7 +273,7 @@ end;
 
 procedure TFrmCultura.SbtnEditarClick(Sender: TObject);
 begin
-  Editar;
+  Atualizar;
 end;
 
 procedure TFrmCultura.SbtnExcluirClick(Sender: TObject);
@@ -280,7 +312,7 @@ procedure TFrmCultura.Inserir;
 var
   LFrmEditarCultura: TFrmEditarCultura;
 begin
-  LFrmEditarCultura := TFrmEditarCultura.Create(Self, FCulturaController, FTipoCulturaController);
+  LFrmEditarCultura := TFrmEditarCultura.Create(Self);
   try
     LFrmEditarCultura.ModoInsercao;
     LFrmEditarCultura.ShowModal;
@@ -296,7 +328,7 @@ var
   LFrmRelatorioTipoCultura: TFrmRelatorioTipoCultura;
 begin
   LFrmRelatorioTipoCultura := TProviderFactory.NewRelatorioTipoCulturaView(Self);
-  LFrmRelatorioTipoCultura.CarregarRelatorio(ObterOrdenacao);
+  LFrmRelatorioTipoCultura.CarregarRelatorio(EdtLocalizar.Text, ObterOrdenacao);
 end;
 
 procedure TFrmCultura.SbtnSairClick(Sender: TObject);
@@ -306,35 +338,16 @@ end;
 
 procedure TFrmCultura.StrGrdCulturaDblClick(Sender: TObject);
 begin
-  Editar;
+  Atualizar;
 end;
 
 procedure TFrmCultura.StrGrdCulturaDrawCell(Sender: TObject; ACol,
   ARow: Integer; Rect: TRect; State: TGridDrawState);
-var
-  Texto: string;
 begin
-  if ARow = 0 then
-  begin
-    Texto := StrGrdCultura.Cells[ACol, ARow];
-
-    StrGrdCultura.Canvas.Brush.Color := clBtnFace;
-    StrGrdCultura.Canvas.FillRect(Rect);
-
-    StrGrdCultura.Canvas.Font.Style := [fsBold];
-
-    DrawText(
-      StrGrdCultura.Canvas.Handle,
-      PChar(Texto),
-      Length(Texto),
-      Rect,
-      DT_LEFT or DT_VCENTER or DT_SINGLELINE
-    );
-  end;
+  PintarPrimeiraLinhaNaGrid(Sender, ACol, ARow, Rect, State);
 end;
 
-procedure TFrmCultura.StrGrdCulturaSelectCell(Sender: TObject; ACol,
-  ARow: LongInt; var CanSelect: Boolean);
+procedure TFrmCultura.StrGrdCulturaSelectCell(Sender: TObject; ACol, ARow: LongInt; var CanSelect: Boolean);
 var
   LIdCultura: Integer;
 begin

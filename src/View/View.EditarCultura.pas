@@ -3,7 +3,7 @@ unit View.EditarCultura;
 interface
 
 uses
-  DataModule.Icons, Controller.TipoCultura, Controller.Cultura, Model.Cultura, Model.TipoCultura,
+  DataModule.Icons, Controller.TipoCultura, Controller.Cultura, Controller.ApiCultura, Model.Cultura, Model.TipoCultura,
   System.Generics.Collections,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
@@ -23,25 +23,30 @@ type
     LblDataPlantio: TLabel;
     ChkAtiva: TCheckBox;
     FlwPnlCultura: TFlowPanel;
-    SbtnSalvar: TSpeedButton;
-    SbtnSair: TSpeedButton;
     VimgLCultura: TVirtualImageList;
-    SbtnAbrirImg: TSpeedButton;
     DlgOpenPicImg: TOpenPictureDialog;
-    SbtnImgPorApi: TSpeedButton;
-    SbtnLimparImg: TSpeedButton;
     VimgLCulturaMenor: TVirtualImageList;
     ImgFoto: TImage;
+    RgAPIs: TRadioGroup;
+    SpeedButton1: TSpeedButton;
+    SbtnSalvar: TSpeedButton;
+    SbtnSair: TSpeedButton;
+    SbtnAbrirImg: TSpeedButton;
+    SbtnImgPorApi: TSpeedButton;
+    SbtnLimparImg: TSpeedButton;
     procedure SbtnSalvarClick(Sender: TObject);
     procedure SbtnSairClick(Sender: TObject);
     procedure SbtnAbrirImgClick(Sender: TObject);
     procedure SbtnLimparImgClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure SbtnImgPorApiClick(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     FCulturaController: TCulturaController;
     FTipoCulturaController: TTipoCulturaController;
+    FCulturaApiController: TCulturaApiController;
   public
-    constructor Create(POwner: TComponent; PCulturaController: TCulturaController;
-                    PTipoCulturaController: TTipoCulturaController); reintroduce;
+    constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
 
     procedure CarregarTiposCultura;
@@ -95,9 +100,9 @@ end;
 
 procedure TFrmEditarCultura.CarregarImagemPorMemoryStream(PFoto: TMemoryStream);
 var
-  LVimgCultura: TBitmap;
+  LImgCultura: TBitmap;
 begin
-  LVimgCultura := nil;
+  LImgCultura := nil;
   try
     if Assigned(PFoto) and (PFoto.Size > 0) then
       begin
@@ -106,11 +111,11 @@ begin
       end
       else
       begin
-        LVimgCultura := DmIcons.ImgCltIcons.GetBitmap(13, ImgFoto.Width, ImgFoto.Height);
-        ImgFoto.Picture.Bitmap := LVimgCultura;
+        LImgCultura := DmIcons.ImgCltIcons.GetBitmap(13, ImgFoto.Width, ImgFoto.Height);
+        ImgFoto.Picture.Bitmap := LImgCultura;
       end;
   finally
-    LVimgCultura.Free;
+    LImgCultura.Free;
   end;
 end;
 
@@ -135,17 +140,26 @@ begin
   end;
 end;
 
-constructor TFrmEditarCultura.Create(POwner: TComponent; PCulturaController: TCulturaController;
-                                     PTipoCulturaController: TTipoCulturaController);
+constructor TFrmEditarCultura.Create(AOwner: TComponent);
 begin
-  inherited Create(POwner);
-  FCulturaController := PCulturaController;
-  FTipoCulturaController := PTipoCulturaController;
+  inherited Create(AOwner);
+  FCulturaController := TProviderFactory.NewCulturaController;
+  FTipoCulturaController := TProviderFactory.NewTipoCulturaController;
+  FCulturaApiController := TProviderFactory.NewCulturaApiController;
 end;
 
 destructor TFrmEditarCultura.Destroy;
 begin
+  FCulturaController.Free;
+  FTipoCulturaController.Free;
+  FCulturaApiController.Free;
   inherited;
+end;
+
+procedure TFrmEditarCultura.FormShow(Sender: TObject);
+begin
+  RgAPIs.ItemIndex := 0;
+  EdtDescricao.SetFocus;
 end;
 
 procedure TFrmEditarCultura.ModoInsercao;
@@ -200,6 +214,25 @@ begin
   CarregarImagemPorArquivo;
 end;
 
+procedure TFrmEditarCultura.SbtnImgPorApiClick(Sender: TObject);
+var
+  LImgCultura: TMemoryStream;
+begin
+  if Trim(EdtDescricao.Text) = '' then
+  begin
+    MessageBox(0, PChar('!!!Digite o nome da planta!!!.'),
+                        'Buscar na web', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    Exit;
+  end;
+
+  LImgCultura := FCulturaApiController.ObterUrlFotoPorApi(EdtDescricao.Text, RgAPIs.Items.Strings[RgAPIs.ItemIndex]);
+  try
+    CarregarImagemPorMemoryStream(LImgCultura);
+  finally
+    LImgCultura.Free;
+  end;
+end;
+
 procedure TFrmEditarCultura.SbtnLimparImgClick(Sender: TObject);
 begin
   ImgFoto.Picture.Graphic := nil;
@@ -213,6 +246,13 @@ end;
 procedure TFrmEditarCultura.SbtnSalvarClick(Sender: TObject);
 begin
   Salvar;
+end;
+
+procedure TFrmEditarCultura.SpeedButton1Click(Sender: TObject);
+begin
+  MessageBox(0, PChar('!!!Ao clicar no botão "Buscar na web" o sistema consultará na web para obter a imagem.' + sLineBreak +
+                     'A consulta é inteligente e na maioria das vezes vai funcionar mesmo com erros de português.'),
+                        'Ajuda', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
 end;
 
 end.

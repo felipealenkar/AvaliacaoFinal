@@ -167,6 +167,9 @@
             <Form>FrmEditarCultura</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="src\Repository\Repository.ApiCultura.pas"/>
+        <DCCReference Include="src\Service\Service.ApiCultura.pas"/>
+        <DCCReference Include="src\Controller\Controller.ApiCultura.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

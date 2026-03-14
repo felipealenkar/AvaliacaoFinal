@@ -25,7 +25,10 @@ uses
   Controller.Cultura in 'src\Controller\Controller.Cultura.pas',
   Repository.Cultura in 'src\Repository\Repository.Cultura.pas',
   View.Cultura in 'src\View\View.Cultura.pas' {FrmCultura},
-  View.EditarCultura in 'src\View\View.EditarCultura.pas' {FrmEditarCultura};
+  View.EditarCultura in 'src\View\View.EditarCultura.pas' {FrmEditarCultura},
+  Repository.ApiCultura in 'src\Repository\Repository.ApiCultura.pas',
+  Service.ApiCultura in 'src\Service\Service.ApiCultura.pas',
+  Controller.ApiCultura in 'src\Controller\Controller.ApiCultura.pas';
 
 {$R *.res}
 

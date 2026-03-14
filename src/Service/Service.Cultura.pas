@@ -44,6 +44,9 @@ end;
 
 procedure TCulturaService.Inserir(PCultura: TCultura);
 begin
+  if FCulturaRepository.ExisteNome(PCultura.Nome, PCultura.IdCultura) then
+    raise Exception.Create('Já existe uma cultura cadastrado com este nome.');
+
   FCulturaRepository.Inserir(PCultura);
 end;
 

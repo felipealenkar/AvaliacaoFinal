@@ -8,11 +8,11 @@ uses
   // Views
   View.EditarCultura, View.Cultura, View.TipoCultura, View.RelatorioTipoCultura,
   // Controllers
-  Controller.DbStart, Controller.TipoCultura, Controller.Cultura,
+  Controller.DbStart, Controller.TipoCultura, Controller.Cultura, Controller.ApiCultura,
   // Services
-  Service.DbStart, Service.TipoCultura, Service.Cultura,
+  Service.DbStart, Service.TipoCultura, Service.Cultura, Service.ApiCultura,
   // Repositories
-  Repository.DbStart, Repository.TipoCultura, Repository.Cultura;
+  Repository.DbStart, Repository.TipoCultura, Repository.Cultura, Repository.ApiCultura;
 
 type
   TProviderFactory = class
@@ -21,6 +21,7 @@ type
     class function NewDbStartController: TDBStartController;
     class function NewTipoCulturaController: TTipoCulturaController;
     class function NewCulturaController: TCulturaController;
+    class function NewCulturaApiController: TCulturaApiController;
 
     class function NewTipoCulturaView(POwner: TComponent): TFrmTipoCultura;
     class function NewCulturaView(POwner:TComponent):TFrmCultura;
@@ -30,6 +31,11 @@ type
 implementation
 
 { TProviderFactory }
+
+class function TProviderFactory.NewCulturaApiController: TCulturaApiController;
+begin
+  Result := TCulturaApiController.Create(TCulturaApiService.Create(TCulturaApiRepository.Create));
+end;
 
 class function TProviderFactory.NewCulturaController: TCulturaController;
 begin

@@ -7786,7 +7786,7 @@
       AlignWithMargins = True
       Left = 4
       Top = 724
-      Width = 180
+      Width = 281
       Height = 25
       Align = alBottom
       Alignment = taCenter
@@ -7797,6 +7797,7 @@
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
+      ExplicitWidth = 180
     end
     object PnlRelatórios: TPanel
       Left = 1

@@ -19,6 +19,7 @@ type
     function Listar(POrdenacao: string): TObjectList<TCultura>;
     function Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
     function ObterPorId(PId: Integer): TCultura;
+    function ExisteNome(PNome: string; PIdIgnorar: Integer = 0): Boolean;
   end;
 
 implementation
@@ -130,6 +131,34 @@ begin
     except
       on E:Exception do
         raise Exception.Create(Format('Erro ao excluir dados na tabela %s.cultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TCulturaRepository.ExisteNome(PNome: string; PIdIgnorar: Integer): Boolean;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LConnection := nil;
+  LQuery := TFDQuery.Create(nil);
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('SELECT 1 FROM %s.cultura ' +
+                                'WHERE UPPER(nome) = UPPER(:PNome) AND id_cultura <> :PId_Cultura' ,[TDBStart.NomeSchema]);
+      LQuery.ParamByName('PNome').AsString := Trim(PNome);
+      LQuery.ParamByName('PId_Cultura').AsInteger := PIdIgnorar;
+      LQuery.Open;
+      Result := not LQuery.Eof;
+    except
+      on E: Exception do
+        raise Exception.Create(Format('Erro ao verificar existência de dados na tabela %s.cultura', [TDBStart.NomeSchema])
                               + sLineBreak + sLineBreak + E.ToString);
     end;
   finally

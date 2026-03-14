@@ -7,24 +7,26 @@ uses
   System.SysUtils,
   System.Generics.Collections,
   Data.DB, FireDAC.Comp.Client, FireDAC.Stan.Param,
-  Model.TipoCultura,
-  Model.DbStart;
+  Model.TipoCultura, Model.Cultura, Model.DbStart;
 
 type
   TTipoCulturaRepository = class(TBaseRepository)
   private
   public
-    function BuscarPorId(PIdTipoCultura: Integer): TTipoCultura;
+    function ObterPorId(PIdTipoCultura: Integer): TTipoCultura;
     procedure Atualizar(PTipoCultura: TTipoCultura);
     procedure Excluir(PIdTipoCultura: Integer);
     procedure Inserir(PTipoCultura: TTipoCultura);
     function Listar(POrdenacao: string): TObjectList<TTipoCultura>;
     function Pesquisar(PBusca, PORdenacao: string): TObjectList<TTipoCultura>;
+    function ExisteDescricao(PDescricao: string; PIdIgnorar: Integer = 0): Boolean;
+    function ExisteNaTabelaCultura(PIdTipoCultura: Integer): Boolean;
+    function ListarCulturasVinculadas(PId_TipoCultura: Integer): TObjectList<TCultura>;
   end;
 
 implementation
 
-function TTipoCulturaRepository.BuscarPorId(PIdTipoCultura: Integer): TTipoCultura;
+function TTipoCulturaRepository.ObterPorId(PIdTipoCultura: Integer): TTipoCultura;
 var
   LQuery: TFDQuery;
   LConnection: TFDConnection;
@@ -128,6 +130,50 @@ begin
   end;
 end;
 
+function TTipoCulturaRepository.ListarCulturasVinculadas(PId_TipoCultura: Integer): TObjectList<TCultura>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LCultura: TCultura;
+begin
+  Result := TObjectList<TCultura>.Create(True);
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format('SELECT id_cultura, nome from ' +
+            '%s.cultura ' +
+            'WHERE id_tipocultura = :PId_Cultura ' +
+            'ORDER BY id_cultura',
+        [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PId_Cultura').AsInteger := PId_TipoCultura;
+      LQuery.Open;
+
+      while not LQuery.Eof do
+      begin
+        LCultura := TCultura.Create;
+
+        LCultura.IdCultura := LQuery.FieldByName('id_cultura').AsInteger;
+        LCultura.Nome := LQuery.FieldByName('nome').AsString;
+        Result.Add(LCultura);
+        LQuery.Next;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao listar culturas vinculadas na tabela %s.cultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
 function TTipoCulturaRepository.Pesquisar(PBusca, PORdenacao: string): TObjectList<TTipoCultura>;
 var
   LQuery: TFDQuery;
@@ -223,6 +269,62 @@ begin
     except
       on E:Exception do
         raise Exception.Create(Format('Erro ao excluir dados na tabela %s.tipocultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TTipoCulturaRepository.ExisteDescricao(PDescricao: string; PIdIgnorar: Integer = 0): Boolean;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LConnection := nil;
+  LQuery := TFDQuery.Create(nil);
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('SELECT 1 FROM %s.tipocultura ' +
+                                'WHERE UPPER(descricao) = UPPER(:PDescricao) AND id_tipocultura <> :PId_TipoCultura' ,[TDBStart.NomeSchema]);
+      LQuery.ParamByName('PDescricao').AsString := Trim(PDescricao);
+      LQuery.ParamByName('PId_TipoCultura').AsInteger := PIdIgnorar;
+      LQuery.Open;
+      Result := not LQuery.Eof;
+    except
+      on E: Exception do
+        raise Exception.Create(Format('Erro ao verificar existência de dados na tabela %s.tipocultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TTipoCulturaRepository.ExisteNaTabelaCultura(PIdTipoCultura: Integer): Boolean;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LConnection := nil;
+  LQuery := TFDQuery.Create(nil);
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('SELECT 1 FROM %s.cultura ' +
+                                'WHERE id_tipocultura = :PId_TipoCultura' ,[TDBStart.NomeSchema]);
+      LQuery.ParamByName('PId_TipoCultura').AsInteger := PIdTipoCultura;
+      LQuery.Open;
+      Result := not LQuery.Eof;
+    except
+      on E: Exception do
+        raise Exception.Create(Format('Erro ao verificar existência de dados vinculados ' +
+                                      'da tabela %0:s.tipocultura com a tabela %0:s.cultura', [TDBStart.NomeSchema])
                               + sLineBreak + sLineBreak + E.ToString);
     end;
   finally
