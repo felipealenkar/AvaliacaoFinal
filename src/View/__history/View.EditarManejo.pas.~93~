@@ -1,0 +1,280 @@
+unit View.EditarManejo;
+
+interface
+
+uses
+  View.LocalizarCultura, DataModule.Icons, Controller.TipoManejo, Controller.Manejo, Model.Manejo, Model.TipoManejo,
+  Controller.Cultura, Model.Cultura,
+
+  System.Generics.Collections,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
+  Vcl.Buttons, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList,
+  Vcl.VirtualImage, Vcl.ExtDlgs, Vcl.Imaging.pngimage, Vcl.NumberBox;
+
+type
+  TFrmEditarManejo = class(TForm)
+    PnlEditarManejo: TPanel;
+    LblTipoManejo: TLabel;
+    LblDescricao: TLabel;
+    LblId: TLabel;
+    EdtDescricao: TEdit;
+    CbbTipoManejo: TComboBox;
+    DtpDataManejo: TDateTimePicker;
+    LblDatamanejo: TLabel;
+    FlwPnlManejo: TFlowPanel;
+    VimgLManejo: TVirtualImageList;
+    EdtCultura: TEdit;
+    LblCultura: TLabel;
+    VimgLManejoMenor: TVirtualImageList;
+    SbtnLocalizar: TSpeedButton;
+    SbtnSalvar: TSpeedButton;
+    SbtnSair: TSpeedButton;
+    LblQuantidade: TLabel;
+    NbxQuantidade: TNumberBox;
+    LblUnidade: TLabel;
+    EdtUnidade: TEdit;
+    LblObservacao: TLabel;
+    mmoObservacao: TMemo;
+    LblIdCultura: TLabel;
+    NbxIdManejo: TNumberBox;
+    NbxIdCultura: TNumberBox;
+    procedure SbtnSalvarClick(Sender: TObject);
+    procedure SbtnSairClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure SbtnLocalizarClick(Sender: TObject);
+    procedure CbbTipoManejoChange(Sender: TObject);
+  private
+    FCulturaController: TCulturaController;
+    FManejoController: TManejoController;
+    FTipoManejoController: TTipoManejoController;
+    FMensagem: String;
+    procedure CarregarTiposManejo;
+    function ValidarCamposPreenchidos: Boolean;
+  public
+    constructor Create(AOwner: TComponent); reintroduce;
+    destructor Destroy; override;
+
+    procedure ModoInsercao;
+    procedure ModoEdicao(PId: Integer);
+    procedure Salvar;
+  end;
+
+implementation
+
+{$R *.dfm}
+uses
+  Factory.Provider;
+{ TFrmEditarCultura }
+
+procedure TFrmEditarManejo.ModoEdicao(PId: Integer);
+var
+  LManejo: TManejo;
+  I: Integer;
+begin
+  DtpDataManejo.Enabled := False;
+  CarregarTiposManejo;
+  LManejo := FManejoController.ObterPorId(PId);
+  try
+    NbxIdManejo.ValueInt := LManejo.IdManejo;
+    NbxIdCultura.ValueInt := LManejo.IdCultura;
+    EdtCultura.Text := LManejo.DescricaoCultura;
+    EdtDescricao.Text := LManejo.Descricao;
+    DtpDataManejo.Date := LManejo.DataManejo;
+
+
+    NbxQuantidade.ValueFloat := LManejo.Quantidade;
+    EdtUnidade.Text := LManejo.Unidade;
+    mmoObservacao.Text := LManejo.Observacao;
+
+    for I := 0 to CbbTipoManejo.Items.Count - 1 do
+    begin
+      if Integer(CbbTipoManejo.Items.Objects[I]) = LManejo.IdTipoManejo then
+      begin
+        CbbTipoManejo.ItemIndex := I;
+        Break;
+      end;
+    end;
+
+  finally
+    LManejo.Free;
+  end;
+end;
+
+procedure TFrmEditarManejo.CarregarTiposManejo;
+var
+  LLista: TObjectList<TTipoManejo>;
+  I: Integer;
+begin
+  CbbTipoManejo.Items.Clear;
+
+  LLista := FTipoManejoController.Listar('descricao');
+  try
+    for I := 0 to LLista.Count - 1 do
+    begin
+      CbbTipoManejo.Items.AddObject(
+        LLista[I].Descricao,
+        TObject(LLista[I].IdTipoManejo)
+      );
+    end;
+  finally
+    LLista.Free;
+  end;
+end;
+
+procedure TFrmEditarManejo.CbbTipoManejoChange(Sender: TObject);
+var
+  LTipoManejo: TTipoManejo;
+begin
+  LTipoManejo := FTipoManejoController.ObterPorDescricao(CbbTipoManejo.Items.Strings[CbbTipoManejo.ItemIndex]);
+  NbxQuantidade.Enabled := LTipoManejo.UtilizaUnidade;
+  EdtUnidade.Enabled := LTipoManejo.UtilizaUnidade;
+
+  if LTipoManejo.UtilizaUnidade = True then
+  begin
+    NbxQuantidade.ValueInt := 0;
+    EdtUnidade.Text := '';
+  end
+  else
+  begin
+    NbxQuantidade.ValueInt := 1;
+    EdtUnidade.Text := '';
+  end;
+end;
+
+constructor TFrmEditarManejo.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FCulturaController := TProviderFactory.NewCulturaController;
+  FManejoController := TProviderFactory.NewManejoController;
+  FTipoManejoController := TProviderFactory.NewTipoManejoController;
+end;
+
+destructor TFrmEditarManejo.Destroy;
+begin
+  FManejoController.Free;
+  FTipoManejoController.Free;
+  FCulturaController.Free;
+  inherited;
+end;
+
+procedure TFrmEditarManejo.FormShow(Sender: TObject);
+begin
+  EdtDescricao.SetFocus;
+end;
+
+procedure TFrmEditarManejo.ModoInsercao;
+begin
+  CarregarTiposManejo;
+  NbxIdManejo.ValueInt := 0;
+  NbxIdCultura.ValueInt := 0;
+  EdtDescricao.Text := EmptyStr;
+  EdtCultura.Text := EmptyStr;
+  NbxQuantidade.ValueFloat := 0;
+  EdtUnidade.Text := EmptyStr;
+  mmoObservacao.Text := EmptyStr;
+  CbbTipoManejo.ItemIndex := -1;
+  DtpDataManejo.DateTime := Now;
+end;
+
+procedure TFrmEditarManejo.Salvar;
+var
+  LIdManejo: Integer;
+  LIdTipoManejo: Integer;
+  LIdCultura: Integer;
+begin
+  if not ValidarCamposPreenchidos then
+    Exit;
+
+  try
+    LIdManejo := NbxIdManejo.ValueInt;
+    LIdTipoManejo := Integer(CbbTipoManejo.Items.Objects[CbbTipoManejo.ItemIndex]);
+    LIdCultura := NbxIdCultura.ValueInt;
+
+    if LIdManejo = 0 then
+    begin
+      FManejoController.Inserir(LIdTipoManejo, LIdCultura, DtpDataManejo.DateTime,
+                                NbxQuantidade.ValueFloat, EdtDescricao.Text, EdtUnidade.Text, mmoObservacao.Text);
+    end
+    else
+    begin
+      // Para Atualizar: PId + os demais parâmetros
+      FManejoController.Atualizar(LIdManejo, LIdTipoManejo, LIdCultura, DtpDataManejo.DateTime,
+                                NbxQuantidade.ValueFloat, EdtDescricao.Text, EdtUnidade.Text, mmoObservacao.Text);
+    end;
+
+    ModalResult := mrOk;
+  except
+    on E: Exception do
+      MessageBox(Handle, PChar('Erro ao salvar manejo: ' + E.Message), 'Erro', MB_OK or MB_ICONERROR);
+  end;
+
+end;
+
+procedure TFrmEditarManejo.SbtnLocalizarClick(Sender: TObject);
+var
+  LFrmLocalizarCultura: TFrmLocalizarCultura;
+  LCultura: TCultura;
+begin
+  LCultura := nil;
+  LFrmLocalizarCultura := TFrmLocalizarCultura.Create(Self);
+  try
+    if LFrmLocalizarCultura.ShowModal = mrOk then
+    begin
+      NbxIdCultura.ValueInt := LFrmLocalizarCultura.IdSelecionado;
+      LCultura := FCulturaController.ObterPorId(NbxIdCultura.ValueInt);
+      EdtCultura.Text := LCultura.Nome;
+    end;
+  finally
+    LFrmLocalizarCultura.Free;
+    LCultura.Free;
+  end;
+end;
+
+procedure TFrmEditarManejo.SbtnSairClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TFrmEditarManejo.SbtnSalvarClick(Sender: TObject);
+begin
+  Salvar;
+end;
+
+function TFrmEditarManejo.ValidarCamposPreenchidos: Boolean;
+//Valida se os campos do cadastro estão totalmente preenchidos
+begin
+  Result := True;
+  FMensagem := 'Não será possível gravar até completar as seguintes ações:' + sLineBreak + sLineBreak;
+
+  if CbbTipoManejo.ItemIndex < 0 then
+  begin
+    FMensagem := FMensagem + sLineBreak + 'Preencher o tipo de manejo.';
+    Result := False;
+  end;
+  if Trim(EdtDescricao.Text) = EmptyStr then
+  begin
+    FMensagem := FMensagem + sLineBreak + 'Preencher a descrição.';
+    Result := False;
+  end;
+  if (Trim(EdtCultura.Text) = EmptyStr) or (NbxIdCultura.ValueInt = 0) then
+  begin
+    FMensagem := FMensagem + sLineBreak + 'Preencher a cultura.';
+    Result := False;
+  end;
+  if NbxQuantidade.ValueFloat <= 0 then
+  begin
+    FMensagem := FMensagem + sLineBreak + 'Preencher a quantidade.';
+    Result := False;
+  end;
+  if Trim(EdtUnidade.Text) = EmptyStr then
+  begin
+    FMensagem := FMensagem + sLineBreak + 'Preencher a unidade.';
+    Result := False;
+  end;
+
+  if not Result then
+    MessageBox(Handle, PChar(FMensagem), 'HortiSys - Aviso', MB_OK or MB_ICONWARNING or MB_TASKMODAL);
+end;
+
+end.

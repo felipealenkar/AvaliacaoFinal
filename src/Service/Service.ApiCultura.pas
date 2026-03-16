@@ -56,7 +56,7 @@ function TCulturaApiService.ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemory
 var
   LNome, LUrlImagem: string;
 begin
-  LNome := FCulturaApiRepository.ObterNomeCientifico(PNome, FCulturaApiRepository.ObterChaveGemini);
+  LNome := FCulturaApiRepository.ObterNomeCientifico(PNome);
   //Showmessage(LNome);
   if PNomeApi = 'GBIF' then
     LUrlImagem := FCulturaApiRepository.ObterUrlFotoPorApiGBIF(LNome);

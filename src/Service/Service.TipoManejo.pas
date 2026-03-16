@@ -23,6 +23,8 @@ type
     function Listar(POrdenacao: string): TObjectList<TTipoManejo>;
     function ListarManejosVinculados(PId_TipoManejo: Integer): TObjectList<TManejo>;
     function Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoManejo>;
+    function ObterPorId(PIdManejo: Integer): TTipoManejo;
+    function ObterPorDescricao(PDescricao: String): TTipoManejo;
   end;
 
 implementation
@@ -73,6 +75,16 @@ end;
 function TTipoManejoService.ListarManejosVinculados(PId_TipoManejo: Integer): TObjectList<TManejo>;
 begin
   Result := FTipoManejoRepository.ListarManejosVinculados(PId_TipoManejo);
+end;
+
+function TTipoManejoService.ObterPorDescricao(PDescricao: String): TTipoManejo;
+begin
+  Result := FTipoManejoRepository.ObterPorDescricao(PDescricao);
+end;
+
+function TTipoManejoService.ObterPorId(PIdManejo: Integer): TTipoManejo;
+begin
+  Result := FTipoManejoRepository.ObterPorId(PIdManejo);
 end;
 
 function TTipoManejoService.Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoManejo>;

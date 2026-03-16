@@ -1,0 +1,92 @@
+unit Controller.TipoManejo;
+
+interface
+
+uses
+  System.Generics.Collections, System.SysUtils,
+  Model.TipoManejo, Model.Manejo,
+  Service.TipoManejo;
+
+type
+  TTipoManejoController = class
+  private
+    FTipoManejoService: TTipoManejoService;
+  public
+    constructor Create(PTipoManejoService: TTipoManejoService);
+    destructor Destroy; override;
+
+    procedure Inserir(PDescricao: string);
+    procedure Atualizar(PId: Integer; PDescricao: string);
+    procedure Excluir(PId: Integer);
+
+    function Listar(POrdenacao: string): TObjectList<TTipoManejo>;
+    function ListarManejosVinculados(PId_TipoManejo: Integer): TObjectList<TManejo>;
+    function Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoManejo>;
+  end;
+
+implementation
+
+constructor TTipoManejoController.Create(PTipoManejoService: TTipoManejoService);
+begin
+  inherited Create;
+  FTipoManejoService := PTipoManejoService;
+end;
+
+destructor TTipoManejoController.Destroy;
+begin
+  FTipoManejoService.Free;
+  inherited;
+end;
+
+procedure TTipoManejoController.Inserir(PDescricao: string);
+var
+  LTipoManejo: TTipoManejo;
+begin
+  if Trim(PDescricao) = '' then
+    raise Exception.Create('Digite a descrição');
+
+  LTipoManejo := TTipoManejo.Create;
+  try
+    LTipoManejo.Descricao := PDescricao;
+    FTipoManejoService.Inserir(LTipoManejo);
+  finally
+    LTipoManejo.Free;
+  end;
+end;
+
+procedure TTipoManejoController.Atualizar(PId: Integer; PDescricao: string);
+var
+  LTipoManejo: TTipoManejo;
+begin
+  LTipoManejo := TTipoManejo.Create;
+  try
+    LTipoManejo.IdTipoManejo := PId;
+    LTipoManejo.Descricao := PDescricao;
+
+    FTipoManejoService.Atualizar(LTipoManejo);
+  finally
+    LTipoManejo.Free;
+  end;
+end;
+
+procedure TTipoManejoController.Excluir(PId: Integer);
+begin
+  FTipoManejoService.Excluir(PId);
+end;
+
+function TTipoManejoController.Listar(POrdenacao: string): TObjectList<TTipoManejo>;
+begin
+  Result := FTipoManejoService.Listar(POrdenacao);
+end;
+
+function TTipoManejoController.ListarManejosVinculados(PId_TipoManejo: Integer): TObjectList<TManejo>;
+begin
+  Result := FTipoManejoService.ListarManejosVinculados(PId_TipoManejo);
+end;
+
+function TTipoManejoController.Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoManejo>;
+begin
+  Result := FTipoManejoService.Pesquisar(PBusca, POrdenacao);
+end;
+
+end.

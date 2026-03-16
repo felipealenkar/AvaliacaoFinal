@@ -14,6 +14,7 @@ type
   private
   public
     function ObterPorId(PIdTipoManejo: Integer): TTipoManejo;
+    function ObterPorDescricao(PDescricao: String): TTipoManejo;
     procedure Atualizar(PTipoManejo: TTipoManejo);
     procedure Excluir(PIdTipoManejo: Integer);
     procedure Inserir(PTipoManejo: TTipoManejo);
@@ -25,6 +26,43 @@ type
   end;
 
 implementation
+
+function TTipoManejoRepository.ObterPorDescricao(PDescricao: String): TTipoManejo;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  Result := nil;
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('SELECT * FROM %s.tipomanejo '
+                         + 'WHERE descricao = :PDescricao', [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PDescricao').AsString := PDescricao;
+      LQuery.Open;
+
+      if not LQuery.IsEmpty then
+      begin
+        Result := TTipoManejo.Create;
+        Result.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
+        Result.Descricao := LQuery.FieldByName('descricao').AsString;
+        Result.UtilizaUnidade := LQuery.FieldByName('utiliza_unidade').AsBoolean;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao buscar registro por id na tabela %s.tipomanejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
 
 function TTipoManejoRepository.ObterPorId(PIdTipoManejo: Integer): TTipoManejo;
 var
@@ -39,8 +77,7 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
-      LQuery.SQL.Text := Format('SELECT id_tipomanejo, descricao '
-                         + 'FROM %s.tipomanejo '
+      LQuery.SQL.Text := Format('SELECT * FROM %s.tipomanejo '
                          + 'WHERE id_tipomanejo = :PIdTipoManejo', [TDBStart.NomeSchema]);
 
       LQuery.ParamByName('PIdTipoManejo').AsInteger := PIdTipoManejo;
@@ -51,6 +88,7 @@ begin
         Result := TTipoManejo.Create;
         Result.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
         Result.Descricao := LQuery.FieldByName('descricao').AsString;
+        Result.UtilizaUnidade := LQuery.FieldByName('utiliza_unidade').AsBoolean;
       end;
     except
       on E:Exception do
@@ -75,10 +113,11 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
-      LQuery.SQL.Text := Format('INSERT INTO %s.tipomanejo (descricao) ' +
-                         'VALUES (:PDescricao)', [TDBStart.NomeSchema]);
+      LQuery.SQL.Text := Format('INSERT INTO %s.tipomanejo (descricao, utiliza_unidade) ' +
+                         'VALUES (:PDescricao, :PUtilizaUnidade)', [TDBStart.NomeSchema]);
 
       LQuery.ParamByName('PDescricao').AsString := PTipoManejo.Descricao;
+      LQuery.ParamByName('PUtilizaUnidade').AsBoolean := PTipoManejo.UtilizaUnidade;
       LQuery.ExecSQL;
     except
       on E:Exception do
@@ -105,8 +144,7 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
-      LQuery.SQL.Text := Format('SELECT id_tipomanejo, descricao '
-                        + 'FROM %s.tipomanejo '
+      LQuery.SQL.Text := Format('SELECT * FROM %s.tipomanejo '
                         + 'ORDER BY &POrdenacao', [TDBStart.NomeSchema]);
       LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
       LQuery.Open;
@@ -116,6 +154,7 @@ begin
         LTipoManejo := TTipoManejo.Create;
         LTipoManejo.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
         LTipoManejo.Descricao := LQuery.FieldByName('descricao').AsString;
+        LTipoManejo.UtilizaUnidade := LQuery.FieldByName('utiliza_unidade').AsBoolean;
         Result.Add(LTipoManejo);
         LQuery.Next;
       end;
@@ -145,7 +184,7 @@ begin
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text :=
-      Format('SELECT id_manejo, descricao from ' +
+      Format('SELECT id_manejo, descricao , data_manejo from ' +
             '%s.manejo ' +
             'WHERE id_tipomanejo = :PIdTipoManejo ' +
             'ORDER BY id_manejo',
@@ -160,6 +199,7 @@ begin
 
         LManejo.IdManejo := LQuery.FieldByName('id_manejo').AsInteger;
         LManejo.Descricao := LQuery.FieldByName('descricao').AsString;
+        LManejo.DataManejo := LQuery.FieldByName('data_manejo').AsDateTime;
         Result.Add(LManejo);
         LQuery.Next;
       end;
@@ -188,8 +228,7 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
-      LQuery.SQL.Text := Format('SELECT id_tipomanejo, descricao '
-                        + 'FROM %0:s.tipomanejo '
+      LQuery.SQL.Text := Format('SELECT * FROM %0:s.tipomanejo '
                         + 'WHERE CAST(id_tipomanejo AS text) ilike CAST(:PIdTipoManejo AS text) or '
                         + '%0:s.sem_acento(descricao::text) ilike %0:s.sem_acento(:PDescricao::text)'
                         + 'ORDER BY &POrdenacao',
@@ -204,6 +243,7 @@ begin
         LTipoManejo := TTipoManejo.Create;
         LTipoManejo.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
         LTipoManejo.Descricao := LQuery.FieldByName('descricao').AsString;
+        LTipoManejo.UtilizaUnidade := LQuery.FieldByName('utiliza_unidade').AsBoolean;
         Result.Add(LTipoManejo);
         LQuery.Next;
       end;
@@ -231,11 +271,12 @@ begin
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('UPDATE %s.tipomanejo '
-                         + 'SET descricao = :PDescricao '
+                         + 'SET descricao = :PDescricao, utiliza_unidade = :PUtilizaUnidade '
                          + 'WHERE id_tipomanejo = :PIdTipoManejo', [TDBStart.NomeSchema]);
 
       LQuery.ParamByName('PDescricao').AsString := PTipoManejo.Descricao;
       LQuery.ParamByName('PIdTipoManejo').AsInteger := PTipoManejo.IdTipoManejo;
+      LQuery.ParamByName('PUtilizaUnidade').AsBoolean := PTipoManejo.UtilizaUnidade;
       LQuery.ExecSQL;
     except
       on E:Exception do

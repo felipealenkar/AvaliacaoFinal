@@ -15,21 +15,20 @@ type
     private
     public
       function ObterRespostaDoGemini(PPrompt: string): string;
-      function ObterNomeCientifico(PNomePT, PChaveGemini: string): string;
+      function ObterNomeCientifico(PNomePT: String): string;
       function ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String;
       function ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): String;
       function ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream;
       procedure AtualizarChaveGemini(PChave: string; PTipo: Boolean);
       function ObterChaveGemini: String;
       function VerificarTipoChave: Boolean;
-
   end;
 
 implementation
 
 { TApiCulturaRepository }
 
-function TCulturaApiRepository.ObterNomeCientifico(PNomePT, PChaveGemini: string): string;
+function TCulturaApiRepository.ObterNomeCientifico(PNomePT: String): string;
 var
   LClient: TRESTClient;
   LRequest: TRESTRequest;
@@ -38,7 +37,7 @@ var
   LValue: TJSONValue;
 begin
   var URLBASE_GEMINI: string := 'https://generativelanguage.googleapis.com/v1beta';
-  var KEY_GEMINI: String := PChaveGemini;
+  var KEY_GEMINI: String := ObterChaveGemini;
   Result := '';
   LClient := TRESTClient.Create(nil);
   LRequest := TRESTRequest.Create(nil);

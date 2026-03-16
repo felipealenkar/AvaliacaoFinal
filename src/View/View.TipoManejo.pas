@@ -54,6 +54,7 @@ type
     procedure PintarPrimeiraLinhaNaGrid(Sender: TObject; ACol, ARow: LongInt; Rect: TRect; State: TGridDrawState);
     procedure AjustarUltimaColuna(PGrid: TStringGrid);
 
+    function BoolToSimNao(PValor: Boolean): string;
     function ObterOrdenacao: string;
 
     procedure Atualizar;
@@ -91,15 +92,17 @@ end;
 procedure TFrmTipoManejo.ConfigurarGrids;
 begin
   // Grid principal
-  StrGrdTipoManejo.ColCount := 2;
+  StrGrdTipoManejo.ColCount := 3;
   StrGrdTipoManejo.FixedRows := 1;
   StrGrdTipoManejo.FixedCols := 0;
   StrGrdTipoManejo.Options := StrGrdTipoManejo.Options + [goRowSelect] - [goEditing];
 
   StrGrdTipoManejo.Cells[0,0] := 'Id';
   StrGrdTipoManejo.Cells[1,0] := 'Descrição';
+  StrGrdTipoManejo.Cells[2,0] := 'Utiliza unidade?';
   StrGrdTipoManejo.ColWidths[0] := 50;
   StrGrdTipoManejo.ColWidths[1] := 350;
+  StrGrdTipoManejo.ColWidths[2] := 50;
 
   // Grid de Manejos Vinculados
   StrGrdManejosVinculados.ColCount := 3;
@@ -137,6 +140,7 @@ begin
     begin
       StrGrdTipoManejo.Cells[0, I + 1] := LListaTipoManejo[I].IdTipoManejo.ToString;
       StrGrdTipoManejo.Cells[1, I + 1] := LListaTipoManejo[I].Descricao;
+      StrGrdTipoManejo.Cells[2, I + 1] := BoolToSimNao(LListaTipoManejo[I].UtilizaUnidade);
     end;
 
     if StrGrdTipoManejo.RowCount > 1 then
@@ -203,7 +207,9 @@ end;
 procedure TFrmTipoManejo.Inserir;
 var
   LDescricao: String;
+  LUtilizaUnidade: Boolean;
   LResposta: Boolean;
+  LResposta2: Integer;
 begin
   repeat
     LResposta := InputQuery('Descrição:', 'Novo tipo de manejo', LDescricao);
@@ -211,7 +217,11 @@ begin
     try
       if Trim(LDescricao) <> '' then
       begin
-        FTipoManejoController.Inserir(LDescricao);
+        LResposta2 := MessageBox(0, PChar('Este manejo utilizará unidade?.'),
+                                'Inserir', MB_YESNO or MB_ICONQUESTION or MB_TASKMODAL);
+
+        LUtilizaUnidade := LResposta2 = IDYES;
+        FTipoManejoController.Inserir(LDescricao, LUtilizaUnidade);
         CarregarGridTipoManejo(CListar);
         Exit;
       end;
@@ -240,10 +250,13 @@ end;
 procedure TFrmTipoManejo.Atualizar;
 var
   LIdTipoManejo: Integer;
+  LTipoManejo: TTipoManejo;
   LDescricaoAtual: string;
   LNovaDescricao: string;
   LResposta: Boolean;
 begin
+  LTipoManejo := nil;
+
   if StrGrdTipoManejo.Row <= 0 then
   begin
     MessageBox(Handle, PChar('Selecione um registro.'), 'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
@@ -252,23 +265,38 @@ begin
 
   LIdTipoManejo := StrToInt(StrGrdTipoManejo.Cells[0, StrGrdTipoManejo.Row]);
   LDescricaoAtual := StrGrdTipoManejo.Cells[1, StrGrdTipoManejo.Row];
-  repeat
-    LResposta := InputQuery('Descrição:', 'Editar tipo de manejo', LDescricaoAtual);
-    if LResposta then
-    try
-      if Trim(LDescricaoAtual) <> '' then
-      begin
-        LNovaDescricao := LDescricaoAtual;
-        FTipoManejoController.Atualizar(LIdTipoManejo, LNovaDescricao);
-        CarregarGridTipoManejo(CListar);
-        Exit;
+
+  try
+    LTipoManejo := FTipoManejoController.ObterPorId(LIdTipoManejo);
+
+    repeat
+      LResposta := InputQuery('Descrição:', 'Editar tipo de manejo', LDescricaoAtual);
+      if LResposta then
+      try
+        if Trim(LDescricaoAtual) <> '' then
+        begin
+          LNovaDescricao := LDescricaoAtual;
+          FTipoManejoController.Atualizar(LIdTipoManejo, LNovaDescricao, LTipoManejo.UtilizaUnidade);
+          CarregarGridTipoManejo(CListar);
+          Exit;
+        end;
+        MessageBox(0, PChar('Digite a descrição.'), 'Inserir', MB_OK or MB_ICONERROR or MB_TASKMODAL);
+      except
+        on E: Exception do
+          MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONERROR or MB_TASKMODAL);
       end;
-      MessageBox(0, PChar('Digite a descrição.'), 'Inserir', MB_OK or MB_ICONERROR or MB_TASKMODAL);
-    except
-      on E: Exception do
-        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONERROR or MB_TASKMODAL);
-    end;
-  until not LResposta;
+    until not LResposta;
+  finally
+    LTipoManejo.Free;
+  end;
+end;
+
+function TFrmTipoManejo.BoolToSimNao(PValor: Boolean): string;
+begin
+  if PValor then
+      Result := 'Sim'
+    else
+      Result := 'Não';
 end;
 
 procedure TFrmTipoManejo.Excluir;

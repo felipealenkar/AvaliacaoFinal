@@ -159,11 +159,11 @@
     <File Path="src\Repository"/>
     <File Path="src\Repository\Repository.ApiCultura.pas"/>
     <File Path="src\Repository\Repository.Base.pas"/>
-    <File Path="src\Repository\Repository.TipoCultura.pas"/>
     <File Path="src\Repository\Repository.Cultura.pas"/>
     <File Path="src\Repository\Repository.DbStart.pas"/>
-    <File Path="src\Repository\Repository.TipoManejo.pas"/>
     <File Path="src\Repository\Repository.Manejo.pas"/>
+    <File Path="src\Repository\Repository.TipoCultura.pas"/>
+    <File Path="src\Repository\Repository.TipoManejo.pas"/>
     <File Path="src\Service"/>
     <File Path="src\Service\Service.ApiCultura.pas"/>
     <File Path="src\Service\Service.Cultura.pas"/>

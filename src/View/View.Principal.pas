@@ -114,7 +114,7 @@ begin
   else
   begin
     // MOVER: Esta é a única linha que deve rodar para o movimento acontecer
-    LblCuriosidades.Left := LblCuriosidades.Left - 2;
+    LblCuriosidades.Left := LblCuriosidades.Left - 3;
 
     // RESETAR: Só entra aqui quando a frase sumir TOTALMENTE
     // Verificamos se o Left é menor que o negativo da largura (sumiu à esquerda)

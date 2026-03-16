@@ -15,13 +15,15 @@ type
     constructor Create(PTipoManejoService: TTipoManejoService);
     destructor Destroy; override;
 
-    procedure Inserir(PDescricao: string);
-    procedure Atualizar(PId: Integer; PDescricao: string);
+    procedure Inserir(PDescricao: string; PUtilizaUnidade: Boolean);
+    procedure Atualizar(PId: Integer; PDescricao: string; PUtilizaUnidade: Boolean);
     procedure Excluir(PId: Integer);
 
     function Listar(POrdenacao: string): TObjectList<TTipoManejo>;
     function ListarManejosVinculados(PId_TipoManejo: Integer): TObjectList<TManejo>;
     function Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoManejo>;
+    function ObterPorId(PIdManejo: Integer): TTipoManejo;
+    function ObterPorDescricao(PDescricao: String): TTipoManejo;
   end;
 
 implementation
@@ -38,7 +40,7 @@ begin
   inherited;
 end;
 
-procedure TTipoManejoController.Inserir(PDescricao: string);
+procedure TTipoManejoController.Inserir(PDescricao: string; PUtilizaUnidade: Boolean);
 var
   LTipoManejo: TTipoManejo;
 begin
@@ -48,13 +50,15 @@ begin
   LTipoManejo := TTipoManejo.Create;
   try
     LTipoManejo.Descricao := PDescricao;
+    LTipoManejo.UtilizaUnidade := PUtilizaUnidade;
+
     FTipoManejoService.Inserir(LTipoManejo);
   finally
     LTipoManejo.Free;
   end;
 end;
 
-procedure TTipoManejoController.Atualizar(PId: Integer; PDescricao: string);
+procedure TTipoManejoController.Atualizar(PId: Integer; PDescricao: string; PUtilizaUnidade: Boolean);
 var
   LTipoManejo: TTipoManejo;
 begin
@@ -62,6 +66,7 @@ begin
   try
     LTipoManejo.IdTipoManejo := PId;
     LTipoManejo.Descricao := PDescricao;
+    LTipoManejo.UtilizaUnidade := PUtilizaUnidade;
 
     FTipoManejoService.Atualizar(LTipoManejo);
   finally
@@ -82,6 +87,16 @@ end;
 function TTipoManejoController.ListarManejosVinculados(PId_TipoManejo: Integer): TObjectList<TManejo>;
 begin
   Result := FTipoManejoService.ListarManejosVinculados(PId_TipoManejo);
+end;
+
+function TTipoManejoController.ObterPorDescricao(PDescricao: String): TTipoManejo;
+begin
+  Result := FTipoManejoService.ObterPorDescricao(PDescricao);
+end;
+
+function TTipoManejoController.ObterPorId(PIdManejo: Integer): TTipoManejo;
+begin
+  Result := FTipoManejoService.ObterPorId(PIdManejo);
 end;
 
 function TTipoManejoController.Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoManejo>;

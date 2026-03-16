@@ -43,6 +43,7 @@ type
     procedure SbtnSairClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure SbtnLocalizarClick(Sender: TObject);
+    procedure CbbTipoManejoChange(Sender: TObject);
   private
     FCulturaController: TCulturaController;
     FManejoController: TManejoController;
@@ -80,6 +81,8 @@ begin
     EdtCultura.Text := LManejo.DescricaoCultura;
     EdtDescricao.Text := LManejo.Descricao;
     DtpDataManejo.Date := LManejo.DataManejo;
+
+
     NbxQuantidade.ValueFloat := LManejo.Quantidade;
     EdtUnidade.Text := LManejo.Unidade;
     mmoObservacao.Text := LManejo.Observacao;
@@ -116,6 +119,31 @@ begin
     end;
   finally
     LLista.Free;
+  end;
+end;
+
+procedure TFrmEditarManejo.CbbTipoManejoChange(Sender: TObject);
+var
+  LTipoManejo: TTipoManejo;
+begin
+  LTipoManejo := nil;
+  try
+    LTipoManejo := FTipoManejoController.ObterPorDescricao(CbbTipoManejo.Items.Strings[CbbTipoManejo.ItemIndex]);
+    NbxQuantidade.Enabled := LTipoManejo.UtilizaUnidade;
+    EdtUnidade.Enabled := LTipoManejo.UtilizaUnidade;
+
+    if LTipoManejo.UtilizaUnidade = True then
+    begin
+      NbxQuantidade.ValueInt := 0;
+      EdtUnidade.Text := EmptyStr;
+    end
+    else
+    begin
+      NbxQuantidade.ValueInt := 1;
+      EdtUnidade.Text := EmptyStr;
+    end;
+  finally
+    LTipoManejo.Free;
   end;
 end;
 
@@ -244,7 +272,7 @@ begin
     FMensagem := FMensagem + sLineBreak + 'Preencher a quantidade.';
     Result := False;
   end;
-  if Trim(EdtUnidade.Text) = EmptyStr then
+  if (Trim(EdtUnidade.Text) = EmptyStr) and (EdtUnidade.Enabled = True) then
   begin
     FMensagem := FMensagem + sLineBreak + 'Preencher a unidade.';
     Result := False;

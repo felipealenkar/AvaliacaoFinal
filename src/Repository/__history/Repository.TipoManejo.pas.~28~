@@ -1,0 +1,337 @@
+unit Repository.TipoManejo;
+
+interface
+
+uses
+  Repository.Base,
+  System.SysUtils,
+  System.Generics.Collections,
+  Data.DB, FireDAC.Comp.Client, FireDAC.Stan.Param,
+  Model.TipoManejo, Model.Manejo, Model.DbStart;
+
+type
+  TTipoManejoRepository = class(TBaseRepository)
+  private
+  public
+    function ObterPorId(PIdTipoManejo: Integer): TTipoManejo;
+    procedure Atualizar(PTipoManejo: TTipoManejo);
+    procedure Excluir(PIdTipoManejo: Integer);
+    procedure Inserir(PTipoManejo: TTipoManejo);
+    function Listar(POrdenacao: string): TObjectList<TTipoManejo>;
+    function Pesquisar(PBusca, PORdenacao: string): TObjectList<TTipoManejo>;
+    function ExisteDescricao(PDescricao: string; PIdIgnorar: Integer = 0): Boolean;
+    function ExisteNaTabelaManejo(PIdTipoManejo: Integer): Boolean;
+    function ListarManejosVinculados(PIdTipoManejo: Integer): TObjectList<TManejo>;
+  end;
+
+implementation
+
+function TTipoManejoRepository.ObterPorId(PIdTipoManejo: Integer): TTipoManejo;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  Result := nil;
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('SELECT * FROM %s.tipomanejo '
+                         + 'WHERE id_tipomanejo = :PIdTipoManejo', [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PIdTipoManejo').AsInteger := PIdTipoManejo;
+      LQuery.Open;
+
+      if not LQuery.IsEmpty then
+      begin
+        Result := TTipoManejo.Create;
+        Result.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
+        Result.Descricao := LQuery.FieldByName('descricao').AsString;
+        Result.UtilizaUnidade := LQuery.FieldByName('utiliza_unidade').AsBoolean;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao buscar registro por id na tabela %s.tipomanejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+procedure TTipoManejoRepository.Inserir(PTipoManejo: TTipoManejo);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('INSERT INTO %s.tipomanejo (descricao, utiliza_unidade) ' +
+                         'VALUES (:PDescricao, :PUtilizaUnidade)', [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PDescricao').AsString := PTipoManejo.Descricao;
+      LQuery.ParamByName('PUtilizaUnidade').AsBoolean := PTipoManejo.UtilizaUnidade;
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao inserir dados na tabela %s.tipomanejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TTipoManejoRepository.Listar(POrdenacao: string): TObjectList<TTipoManejo>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LTipoManejo: TTipoManejo;
+begin
+  Result := TObjectList<TTipoManejo>.Create(True);
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('SELECT * FROM %s.tipomanejo '
+                        + 'ORDER BY &POrdenacao', [TDBStart.NomeSchema]);
+      LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
+      LQuery.Open;
+
+      while not LQuery.Eof do
+      begin
+        LTipoManejo := TTipoManejo.Create;
+        LTipoManejo.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
+        LTipoManejo.Descricao := LQuery.FieldByName('descricao').AsString;
+        Result.Add(LTipoManejo);
+        LQuery.Next;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao listar dados da tabela %s.tipomanejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TTipoManejoRepository.ListarManejosVinculados(PIdTipoManejo: Integer): TObjectList<TManejo>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LManejo: TManejo;
+begin
+  Result := TObjectList<TManejo>.Create(True);
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format('SELECT id_manejo, descricao from ' +
+            '%s.manejo ' +
+            'WHERE id_tipomanejo = :PIdTipoManejo ' +
+            'ORDER BY id_manejo',
+        [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PIdTipoManejo').AsInteger := PIdTipoManejo;
+      LQuery.Open;
+
+      while not LQuery.Eof do
+      begin
+        LManejo := TManejo.Create;
+
+        LManejo.IdManejo := LQuery.FieldByName('id_manejo').AsInteger;
+        LManejo.Descricao := LQuery.FieldByName('descricao').AsString;
+        Result.Add(LManejo);
+        LQuery.Next;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao listar manejos vinculados na tabela %s.manejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TTipoManejoRepository.Pesquisar(PBusca, PORdenacao: string): TObjectList<TTipoManejo>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LTipoManejo: TTipoManejo;
+begin
+  Result := TObjectList<TTipoManejo>.Create(True);
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('SELECT id_tipomanejo, descricao '
+                        + 'FROM %0:s.tipomanejo '
+                        + 'WHERE CAST(id_tipomanejo AS text) ilike CAST(:PIdTipoManejo AS text) or '
+                        + '%0:s.sem_acento(descricao::text) ilike %0:s.sem_acento(:PDescricao::text)'
+                        + 'ORDER BY &POrdenacao',
+                        [TDBStart.NomeSchema]);
+      LQuery.ParamByName('PIdTipoManejo').AsString := '%' + PBusca + '%';
+      LQuery.ParamByName('PDescricao').AsString := '%' + PBusca + '%';
+      LQuery.MacroByName('POrdenacao').AsRaw := PORdenacao;
+      LQuery.Open;
+
+      while not LQuery.Eof do
+      begin
+        LTipoManejo := TTipoManejo.Create;
+        LTipoManejo.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
+        LTipoManejo.Descricao := LQuery.FieldByName('descricao').AsString;
+        Result.Add(LTipoManejo);
+        LQuery.Next;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao pesquisar dados da tabela %s.tipomanejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+procedure TTipoManejoRepository.Atualizar(PTipoManejo: TTipoManejo);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('UPDATE %s.tipomanejo '
+                         + 'SET descricao = :PDescricao '
+                         + 'WHERE id_tipomanejo = :PIdTipoManejo', [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PDescricao').AsString := PTipoManejo.Descricao;
+      LQuery.ParamByName('PIdTipoManejo').AsInteger := PTipoManejo.IdTipoManejo;
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao editar dados na tabela %s.tipomanejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+procedure TTipoManejoRepository.Excluir(PIdTipoManejo: Integer);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('DELETE FROM %s.tipomanejo '
+                         + 'WHERE id_tipomanejo = :PIdTipoManejo', [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PIdTipoManejo').AsInteger := PIdTipoManejo;
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao excluir dados na tabela %s.tipomanejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TTipoManejoRepository.ExisteDescricao(PDescricao: string; PIdIgnorar: Integer = 0): Boolean;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LConnection := nil;
+  LQuery := TFDQuery.Create(nil);
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('SELECT 1 FROM %s.tipomanejo ' +
+                                'WHERE UPPER(descricao) = UPPER(:PDescricao) AND ' +
+                                'id_tipomanejo <> :PIdTipoManejo' ,[TDBStart.NomeSchema]);
+      LQuery.ParamByName('PDescricao').AsString := Trim(PDescricao);
+      LQuery.ParamByName('PIdTipoManejo').AsInteger := PIdIgnorar;
+      LQuery.Open;
+      Result := not LQuery.Eof;
+    except
+      on E: Exception do
+        raise Exception.Create(Format('Erro ao verificar existência de dados na tabela %s.tipomanejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TTipoManejoRepository.ExisteNaTabelaManejo(PIdTipoManejo: Integer): Boolean;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LConnection := nil;
+  LQuery := TFDQuery.Create(nil);
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text := Format('SELECT 1 FROM %s.manejo ' +
+                                'WHERE id_tipomanejo = :PIdTipoManejo' ,[TDBStart.NomeSchema]);
+      LQuery.ParamByName('PIdTipoManejo').AsInteger := PIdTipoManejo;
+      LQuery.Open;
+      Result := not LQuery.Eof;
+    except
+      on E: Exception do
+        raise Exception.Create(Format('Erro ao verificar existência de dados vinculados ' +
+                                      'da tabela %0:s.TipoManejo com a tabela %0:s.manejo', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+end.
