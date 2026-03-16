@@ -45,6 +45,7 @@ begin
   FDbStartRepository.CriarSchema;
   FDbStartRepository.CriarTabelaTipoCultura;
   FDbStartRepository.CriarTabelaCultura;
+  FDbStartRepository.CriarTabelaTipoManejo;
   FDbStartRepository.CriarTabelaManejo;
 end;
 

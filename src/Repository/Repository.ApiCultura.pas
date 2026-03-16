@@ -29,7 +29,7 @@ var
   LValue: TJSONValue;
 
 const URLBASE_GEMINI: string = 'https://generativelanguage.googleapis.com/v1beta';
-const KEY_GEMINI: String = 'AIzaSyChOMAsF7qjUeQJeKZUCKS1Yu7HTpkZTqg';
+const KEY_GEMINI: String = 'AIzaSyDPdAyuuvTwzMgghmZFoYvYv0jSbhEZBbk';
 begin
   Result := '';
   LClient := TRESTClient.Create(nil);
@@ -41,7 +41,7 @@ begin
     LRequest.Response := LResponse;
     LRequest.Method := rmPOST;
     LRequest.Resource := 'models/gemini-3.1-flash-lite-preview:generateContent';
-    //LRequest.Timeout := 5000;
+    LRequest.Timeout := 10000;
 
     LRequest.AddParameter('key', KEY_GEMINI, pkQUERY);
     LRequest.AddBody(
@@ -234,7 +234,6 @@ begin
       end
       else
         raise Exception.CreateFmt('Erro ao baixar imagem: Erro %d', [LIHTTPResp.StatusCode]);
-
     except
       LTempStream.Free;
       raise;

@@ -1,0 +1,404 @@
+unit Repository.Manejo;
+
+interface
+
+uses
+  Repository.Base,
+  System.SysUtils,
+  System.Generics.Collections,
+  Data.DB, FireDAC.Comp.Client, FireDAC.Stan.Param,
+  Model.Manejo,
+  Model.DbStart;
+
+type
+  TManejoRepository = class(TBaseRepository)
+  public
+    procedure Inserir(PManejo: TManejo);
+    procedure Atualizar(PManejo: TManejo);
+    procedure Excluir(PIdManejo: Integer);
+
+    function ObterPorId(PId: Integer): TManejo;
+
+    function Listar(POrdenacao: string): TObjectList<TManejo>;
+    function Pesquisar(PBusca, POrdenacao: string): TObjectList<TManejo>;
+
+    function ListarPorCultura(PIdCultura: Integer): TObjectList<TManejo>; // HISTÓRICO
+  end;
+
+implementation
+
+{ TManejoRepository }
+
+procedure TManejoRepository.Atualizar(PManejo: TManejo);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format('UPDATE %s.manejo SET ' +
+             'id_manejo = :PIdManejo, ' +
+             'descricao = :PDescricao, ' +
+             'id_tipomanejo=:PIdTipoManejo, ' +
+             'id_cultura=:PIdCultura, ' +
+             'data_manejo=:PDataManejo, ' +
+             'quantidade=:PQuantidade, ' +
+             'unidade=:PUnidade, ' +
+             'observacao=:PObservacao ' +
+             'WHERE id_manejo=:PIdManejo',
+             [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PIdManejo').AsInteger := PManejo.IdManejo;
+      LQuery.ParamByName('PDescricao').AsString := PManejo.Descricao;
+      LQuery.ParamByName('PIdTipoManejo').AsInteger := PManejo.IdTipoManejo;
+      LQuery.ParamByName('PIdCultura').AsInteger := PManejo.IdCultura;
+      LQuery.ParamByName('PDataManejo').AsDateTime := PManejo.DataManejo;
+      LQuery.ParamByName('PQuantidade').AsFloat := PManejo.Quantidade;
+      LQuery.ParamByName('PUnidade').AsString := PManejo.Unidade;
+      LQuery.ParamByName('PObservacao').AsString := PManejo.Obs;
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(
+        Format('Erro ao atualizar dados na tabela %s.manejo',[TDBStart.NomeSchema]) +
+        sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+procedure TManejoRepository.Excluir(PIdManejo: Integer);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format('DELETE FROM %s.manejo WHERE id_manejo=:PIdManejo',
+      [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PIdManejo').AsInteger := PIdManejo;
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(
+        Format('Erro ao excluir dados na tabela %s.manejo',[TDBStart.NomeSchema]) +
+        sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+procedure TManejoRepository.Inserir(PManejo: TManejo);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format('INSERT INTO %s.manejo ' +
+             '(descricao, id_tipomanejo, id_cultura, data_manejo, quantidade, unidade, observacao) ' +
+             'VALUES (:PDescricao, :PIdTipoManejo, :PIdCultura,:PDataManejo,:PQuantidade,:PUnidade,:PObservacao)',
+             [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PDescricao').AsString := PManejo.Descricao;
+      LQuery.ParamByName('PId_TipoManejo').AsInteger := PManejo.IdTipoManejo;
+      LQuery.ParamByName('PId_Cultura').AsInteger := PManejo.IdCultura;
+      LQuery.ParamByName('PDataManejo').AsDateTime := PManejo.DataManejo;
+      LQuery.ParamByName('PQuantidade').AsFloat := PManejo.Quantidade;
+      LQuery.ParamByName('PUnidade').AsString := PManejo.Unidade;
+      LQuery.ParamByName('PObservacao').AsString := PManejo.Obs;
+
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(
+        Format('Erro ao inserir dados na tabela %s.manejo',[TDBStart.NomeSchema]) +
+        sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TManejoRepository.Listar(POrdenacao: string): TObjectList<TManejo>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LManejo: TManejo;
+begin
+  Result := TObjectList<TManejo>.Create(True);
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format(
+        'SELECT ' +
+        'm.id_manejo, ' +
+        'm.descricao, ' +
+        'm.id_tipomanejo, ' +
+        'm.id_cultura, ' +
+        'm.data_manejo, ' +
+        'm.quantidade, ' +
+        'm.unidade, ' +
+        'm.observacao, ' +
+        'tm.descricao AS descricao_tipomanejo, ' +
+        'c.nome AS descricao_cultura ' +
+        'FROM %0:s.manejo m ' +
+        'JOIN %0:s.tipomanejo tm ' +
+        'ON tm.id_tipomanejo = m.id_tipomanejo ' +
+        'JOIN %0:s.cultura c ' +
+        'ON c.id_cultura = m.id_cultura ' +
+        'ORDER BY &POrdenacao',
+        [TDBStart.NomeSchema]);
+
+      LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
+      LQuery.Open;
+
+      while not LQuery.Eof do
+      begin
+        LManejo := TManejo.Create;
+
+        LManejo.IdManejo := LQuery.FieldByName('id_manejo').AsInteger;
+        LManejo.Descricao := LQuery.FieldByName('descricao').AsString;
+        LManejo.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
+        LManejo.IdCultura := LQuery.FieldByName('id_cultura').AsInteger;
+        LManejo.DataManejo := LQuery.FieldByName('data_manejo').AsDateTime;
+        LManejo.Quantidade := LQuery.FieldByName('quantidade').AsFloat;
+        LManejo.Unidade := LQuery.FieldByName('unidade').AsString;
+        LManejo.Obs := LQuery.FieldByName('observacao').AsString;
+
+        LManejo.DescricaoTipoManejo := LQuery.FieldByName('descricao_tipomanejo').AsString;
+        LManejo.DescricaoCultura := LQuery.FieldByName('descricao_cultura').AsString;
+
+        Result.Add(LManejo);
+        LQuery.Next;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao listar dados da tabela %s.manejo',[TDBStart.NomeSchema]) +
+        sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TManejoRepository.ListarPorCultura(PIdCultura: Integer): TObjectList<TManejo>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LManejo: TManejo;
+begin
+  Result := TObjectList<TManejo>.Create(True);
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format(
+        'SELECT ' +
+        'm.id_manejo, ' +
+        'm.data_manejo, ' +
+        'tm.descricao AS tipo_manejo, ' +
+        'm.quantidade, ' +
+        'm.unidade, ' +
+        'm.observacao ' +
+        'FROM %0:s.manejo m ' +
+        'JOIN %0:s.tipomanejo tm ' +
+        'ON tm.id_tipomanejo = m.id_tipomanejo ' +
+        'WHERE m.id_cultura = :PId_Cultura ' +
+        'ORDER BY m.data_manejo DESC',
+        [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PId_Cultura').AsInteger := PIdCultura;
+      LQuery.Open;
+
+      while not LQuery.Eof do
+      begin
+        LManejo := TManejo.Create;
+        LManejo.IdManejo := LQuery.FieldByName('id_manejo').AsInteger;
+        LManejo.DataManejo := LQuery.FieldByName('data_manejo').AsDateTime;
+        LManejo.DescricaoTipoManejo := LQuery.FieldByName('tipo_manejo').AsString;
+        LManejo.Quantidade := LQuery.FieldByName('quantidade').AsFloat;
+        LManejo.Unidade := LQuery.FieldByName('unidade').AsString;
+        LManejo.Obs := LQuery.FieldByName('observacao').AsString;
+
+        Result.Add(LManejo);
+        LQuery.Next;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(
+        Format('Erro ao listar histórico de manejo da cultura %s',[TDBStart.NomeSchema]) +
+        sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TManejoRepository.ObterPorId(PId: Integer): TManejo;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  Result := nil;
+  LQuery := nil;
+  LConnection := nil;
+  try
+    LConnection := CriarConexao(TDBStart.NomeDatabase);
+    LQuery := TFDQuery.Create(nil);
+    LQuery.Connection := LConnection;
+    LQuery.SQL.Text :=
+    Format('SELECT ' +
+          'm.id_manejo, ' +
+          'm.descricao, ' +
+          'm.id_tipomanejo, ' +
+          'm.id_cultura, ' +
+          'm.data_manejo, ' +
+          'm.quantidade, ' +
+          'm.unidade, ' +
+          'm.observacao, ' +
+          'tm.descricao AS descricao_tipomanejo, ' +
+          'c.nome AS descricao_cultura ' +
+          'FROM %0:s.manejo m ' +
+          'JOIN %0:s.tipomanejo tm ' +
+          'ON tm.id_tipomanejo = m.id_tipomanejo, ' +
+          'JOIN %0:s.cultura c ' +
+          'ON c.id_cultura = m.id_cultura ' +
+          'WHERE id_manejo=:PIdManejo',
+    [TDBStart.NomeSchema]);
+
+    LQuery.ParamByName('PIdManejo').AsInteger := PId;
+    LQuery.Open;
+
+    if not LQuery.Eof then
+    begin
+      Result := TManejo.Create;
+
+      Result.IdManejo := LQuery.FieldByName('id_manejo').AsInteger;
+      Result.Descricao := LQuery.FieldByName('descricao').AsString;
+      Result.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
+      Result.IdCultura := LQuery.FieldByName('id_cultura').AsInteger;
+      Result.DataManejo := LQuery.FieldByName('data_manejo').AsDateTime;
+      Result.Quantidade := LQuery.FieldByName('quantidade').AsFloat;
+      Result.Unidade := LQuery.FieldByName('unidade').AsString;
+      Result.Obs := LQuery.FieldByName('observacao').AsString;
+
+      Result.DescricaoTipoManejo := LQuery.FieldByName('descricao_tipomanejo').AsString;
+      Result.DescricaoCultura := LQuery.FieldByName('descricao_cultura').AsString;
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TManejoRepository.Pesquisar(PBusca, POrdenacao: string): TObjectList<TManejo>;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+  LManejo: TManejo;
+begin
+  Result := TObjectList<TManejo>.Create(True);
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format('SELECT ' +
+            'm.id_manejo, ' +
+            'm.descricao, ' +
+            'm.data_manejo, ' +
+            'm.quantidade, ' +
+            'm.unidade, ' +
+            'm.observacao, ' +
+            'm.id_cultura, ' +
+            'm.id_tipomanejo, ' +
+            'tm.descricao AS descricao_tipomanejo, ' +
+            'c.nome AS descricao_cultura ' +
+            'FROM %0:s.manejo m ' +
+            'JOIN %0:s.tipomanejo tm ' +
+            'ON tm.id_tipomanejo = m.id_tipomanejo ' +
+            'JOIN %0:s.cultura c ' +
+            'ON c.id_cultura = m.id_cultura ' +
+            'WHERE CAST(m.id_manejo AS TEXT) ilike CAST(:PId_Manejo AS TEXT) OR ' +
+            '%0:s.sem_acento(tm.descricao::text) ilike %0:s.sem_acento(:PDescricao::text) OR ' +
+            '%0:s.sem_acento(m.observacao::text) ilike %0:s.sem_acento(:PObservacao::text) ' +
+            'ORDER BY &POrdenacao',
+            [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PId_Manejo').AsString := '%' + PBusca + '%';
+      LQuery.ParamByName('PDescricao').AsString := '%' + PBusca + '%';
+      LQuery.ParamByName('PObservacao').AsString := '%' + PBusca + '%';
+      LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
+      LQuery.Open;
+
+      while not LQuery.Eof do
+      begin
+        LManejo := TManejo.Create;
+
+        LManejo.IdManejo := LQuery.FieldByName('id_manejo').AsInteger;
+        LManejo.Descricao := LQuery.FieldByName('descricao').AsString;
+        LManejo.DataManejo := LQuery.FieldByName('data_manejo').AsDateTime;
+        LManejo.Quantidade := LQuery.FieldByName('quantidade').AsFloat;
+        LManejo.Unidade := LQuery.FieldByName('unidade').AsString;
+        LManejo.Obs := LQuery.FieldByName('observacao').AsString;
+        LManejo.IdCultura := LQuery.FieldByName('id_cultura').AsInteger;
+        LManejo.IdTipoManejo := LQuery.FieldByName('id_tipomanejo').AsInteger;
+
+        LManejo.DescricaoTipoManejo := LQuery.FieldByName('descricao_tipomanejo').AsString;
+        LManejo.DescricaoCultura := LQuery.FieldByName('descricao_cultura').AsString;
+
+        Result.Add(LManejo);
+        LQuery.Next;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(
+        Format('Erro ao pesquisar dados da tabela %s.manejo',[TDBStart.NomeSchema]) +
+        sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+end.

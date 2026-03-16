@@ -9,19 +9,29 @@ type
   TManejo = class
   private
     FIdManejo: Integer;
+    FDescricao: string;
+    FIdTipoManejo: Integer;
+    FDescricaoTipoManejo: string;
     FIdCultura: Integer;
-    FData: TDate;
-    FTipo: string;
+    FDescricaoCultura: string;
+    FDataManejo: TDateTime;
+    FQuantidade: Double;
+    FUnidade: string;
     FObservacao: string;
 
-    procedure SetTipo(PTipo: string);
+    procedure SetTipoManejo(PIdTipoManejo: Integer);
   public
     constructor Create;
 
     property IdManejo: Integer read FIdManejo write FIdManejo;
+    property Descricao: string read FDescricao write FDescricao;
+    property IdTipoManejo: Integer read FIdTipoManejo write SetTipoManejo;
+    property DescricaoTipoManejo: string read FDescricaoTipoManejo write FDescricaoTipoManejo;
     property IdCultura: Integer read FIdCultura write FIdCultura;
-    property Data: TDate read FData write FData;
-    property Tipo: string read FTipo write SetTipo;
+    property DescricaoCultura: string read FDescricaoCultura write FDescricaoCultura;
+    property DataManejo: TDateTime read FDataManejo write FDataManejo;
+    property Quantidade: Double read FQuantidade write FQuantidade;
+    property Unidade: String read FUnidade write FUnidade;
     property Observacao: string read FObservacao write FObservacao;
   end;
 
@@ -32,15 +42,15 @@ implementation
 constructor TManejo.Create;
 begin
   inherited;
-  FData := Date;
+  FDataManejo := Date;
 end;
 
-procedure TManejo.SetTipo(PTipo: string);
+procedure TManejo.SetTipoManejo(PIdTipoManejo: Integer);
 begin
-  if Trim(PTipo).IsEmpty then
+  if PIdTipoManejo < 0 then
     raise Exception.Create('Tipo de manejo não pode estar vazio');
 
-  FTipo := PTipo;
+  FIdTipoManejo := PIdTipoManejo;
 end;
 
 end.

@@ -1,0 +1,114 @@
+unit View.RelatorioTipoManejo;
+
+interface
+
+uses
+  Controller.TipoManejo, Model.TipoManejo,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Generics.Collections,
+  System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, RLReport, Vcl.Imaging.pngimage,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, RLPreviewForm;
+
+type
+  TFrmRelatorioTipoManejo = class(TForm)
+    RlrMaster: TRLReport;
+    RlbCabecalho: TRLBand;
+    rldrw1: TRLDraw;
+    img1: TRLImage;
+    rlbl1: TRLLabel;
+    rlbl2: TRLLabel;
+    rlsystmnf1: TRLSystemInfo;
+    rlbl4: TRLLabel;
+    rlbl5: TRLLabel;
+    rldrw2: TRLDraw;
+    rlbndDetalhe: TRLBand;
+    DbTextIdentificador: TRLDBText;
+    DbTextDescricao: TRLDBText;
+    rlbndRodapé: TRLBand;
+    rldrw3: TRLDraw;
+    rlbl3: TRLLabel;
+    rlsystmnf2: TRLSystemInfo;
+  private
+    FTipoManejoController: TTipoManejoController;
+  public
+    procedure CarregarRelatorio(PBusca, POrdenacao: string);
+    constructor Create(POwner: TComponent; PTipoManejoController: TTipoManejoController); reintroduce;
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{$R *.dfm}
+
+{ TFrmRelatorioTipoCultura }
+
+procedure TFrmRelatorioTipoManejo.CarregarRelatorio(PBusca, POrdenacao: string);
+var
+  LDFMTableTipoManejo: TFDMemTable;
+  LDsTipoManejo: TDataSource;
+  LLista: TObjectList<TTipoManejo>;
+  I: Integer;
+  LPreviewSetup: TRLPreviewSetup;
+begin
+  LLista := nil;
+  LDFMTableTipoManejo := nil;
+  LDsTipoManejo := nil;
+  LPreviewSetup := nil;
+
+  try
+    try
+      LDFMTableTipoManejo := TFDMemTable.Create(nil);
+      LDFMTableTipoManejo.FieldDefs.Add('id_tipomanejo', ftInteger);
+      LDFMTableTipoManejo.FieldDefs.Add('descricao', ftString, 50, True);
+      LDFMTableTipoManejo.CreateDataSet;
+
+      LDsTipoManejo := TDataSource.Create(nil);
+      LDsTipoManejo.DataSet := LDFMTableTipoManejo;
+
+      LLista := FTipoManejoController.Pesquisar(PBusca, POrdenacao);
+
+      for I := 0 to LLista.Count -1 do
+      begin
+        LDFMTableTipoManejo.Append;
+        LDFMTableTipoManejo.FieldByName('id_tipomanejo').AsInteger := LLista[i].IdTipoManejo;
+        LDFMTableTipoManejo.FieldByName('descricao').AsString := LLista[i].Descricao;
+        LDFMTableTipoManejo.Post;
+      end;
+
+      RlrMaster.DataSource := LDsTipoManejo;
+      DbTextIdentificador.DataSource := LDsTipoManejo;
+      DbTextDescricao.DataSource := LDsTipoManejo;
+
+      DbTextIdentificador.DataField := 'id_tipomanejo';
+      DbTextDescricao.DataField := 'descricao';
+
+      LPreviewSetup := TRLPreviewSetup.Create(nil);
+      LPreviewSetup.ZoomFactor := 85;
+      RlrMaster.Preview();
+    except
+      on E: Exception do
+        raise Exception.Create('Erro ao carregar o relatório.' + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LLista.Free;
+    LDsTipoManejo.Free;
+    LDFMTableTipoManejo.Free;
+    LPreviewSetup.Free;
+  end;
+end;
+
+constructor TFrmRelatorioTipoManejo.Create(POwner: TComponent; PTipoManejoController: TTipoManejoController);
+begin
+  inherited Create(POwner);
+  FTipoManejoController := PTipoManejoController;
+end;
+
+destructor TFrmRelatorioTipoManejo.Destroy;
+begin
+  FTipoManejoController.Free;
+  inherited;
+end;
+
+end.

@@ -1,0 +1,345 @@
+unit View.Manejo;
+
+interface
+
+uses
+  DataModule.Icons, View.EditarManejo, View.RelatorioTipoManejo, View.RelatorioManejo, Model.TipoManejo, Model.Manejo,
+  Controller.Manejo, Controller.TipoManejo,
+  System.Generics.Collections,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
+  Vcl.Grids, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList,
+  Vcl.Imaging.pngimage;
+
+type
+  TFrmManejo = class(TForm)
+    PnlManejo: TPanel;
+    grpManejo: TGroupBox;
+    LblLocalizar: TLabel;
+    StrGrdManejo: TStringGrid;
+    FlwPnlManejo: TFlowPanel;
+    SbtnNovo: TSpeedButton;
+    SbtnEditar: TSpeedButton;
+    SbtnExcluir: TSpeedButton;
+    SbtnRelatorio: TSpeedButton;
+    SbtnSair: TSpeedButton;
+    RgOrdenacao: TRadioGroup;
+    VimgLManejo: TVirtualImageList;
+    EdtLocalizar: TEdit;
+    procedure SbtnSairClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
+    procedure StrGrdManejoDrawCell(Sender: TObject; ACol, ARow: LongInt;
+      Rect: TRect; State: TGridDrawState);
+    procedure RgOrdenacaoClick(Sender: TObject);
+    procedure SbtnExcluirClick(Sender: TObject);
+    procedure EdtLocalizarChange(Sender: TObject);
+    procedure SbtnRelatorioClick(Sender: TObject);
+    procedure SbtnNovoClick(Sender: TObject);
+    procedure SbtnEditarClick(Sender: TObject);
+    procedure StrGrdManejoDblClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+  private
+    FManejoController: TManejoController;
+    FTipoManejoController: TTipoManejoController;
+
+    procedure ConfigurarGrid;
+    procedure CarregarGrid(PAcao: String);
+    procedure PintarPrimeiraLinhaNaGrid(Sender: TObject; ACol, ARow: LongInt; Rect: TRect; State: TGridDrawState);
+    procedure AjustarUltimaColuna(PGrid: TStringGrid);
+
+    function ObterOrdenacao: string;
+    procedure Inserir;
+    procedure Atualizar;
+    procedure Excluir;
+    { Private declarations }
+  public
+    constructor Create(POwner: TComponent; PManejoController: TManejoController;
+                      PTipoManejoController: TTipoManejoController); reintroduce;
+    destructor Destroy; override;
+    { Public declarations }
+  end;
+
+  const CListar: string = 'Listar';
+  const CPesquisar: string = 'Pesquisar';
+
+implementation
+
+{$R *.dfm}
+
+uses Factory.Provider;
+
+{ TFrmCultura }
+
+procedure TFrmManejo.CarregarGrid(PAcao: String);
+var
+  LLista: TObjectList<TManejo>;
+  I: Integer;
+begin
+  StrGrdManejo.BeginUpdate;
+  LLista := nil;
+  try
+    if PAcao = CListar then LLista := FManejoController.Listar(ObterOrdenacao);
+    if PAcao = CPesquisar then LLista := FManejoController.Pesquisar(EdtLocalizar.Text, ObterOrdenacao);
+
+    StrGrdManejo.RowCount := LLista.Count + 1;
+
+    for I := 0 to LLista.Count - 1 do
+    begin
+      StrGrdManejo.Cells[0, I + 1] := LLista[I].IdManejo.ToString;
+      StrGrdManejo.Cells[1, I + 1] := LLista[I].Descricao;
+      StrGrdManejo.Cells[2, I + 1] := LLista[I].DescricaoTipoManejo;
+      StrGrdManejo.Cells[3, I + 1] := LLista[I].DescricaoCultura;
+      StrGrdManejo.Cells[4, I + 1] := DateTimeToStr(LLista[I].DataManejo);
+      StrGrdManejo.Cells[5, I + 1] := LLista[I].Quantidade.ToString;
+      StrGrdManejo.Cells[6, I + 1] := LLista[I].Unidade;
+      StrGrdManejo.Cells[7, I + 1] := LLista[I].Observacao;
+    end;
+  finally
+    StrGrdManejo.EndUpdate;
+    LLista.Free;
+  end;
+end;
+
+procedure TFrmManejo.ConfigurarGrid;
+begin
+  StrGrdManejo.ColCount := 8;
+  StrGrdManejo.FixedRows := 1;
+  StrGrdManejo.FixedCols := 0;
+
+  StrGrdManejo.Cells[0,0] := 'Id';
+  StrGrdManejo.Cells[1,0] := 'Descrição';
+  StrGrdManejo.Cells[2,0] := 'Tipo Manejo';
+  StrGrdManejo.Cells[3,0] := 'Cultura';
+  StrGrdManejo.Cells[4,0] := 'Data/Hora Manejo';
+  StrGrdManejo.Cells[5,0] := 'Quantidade';
+  StrGrdManejo.Cells[6,0] := 'Unidade';
+  StrGrdManejo.Cells[7,0] := 'Obs';
+
+  StrGrdManejo.ColWidths[0] := 40;
+  StrGrdManejo.ColWidths[1] := 164;
+  StrGrdManejo.ColWidths[2] := 164;
+  StrGrdManejo.ColWidths[3] := 182;
+  StrGrdManejo.ColWidths[4] := 100;
+  StrGrdManejo.ColWidths[5] := 100;
+  StrGrdManejo.ColWidths[6] := 100;
+  StrGrdManejo.ColWidths[7] := 100;
+
+  RgOrdenacao.ItemIndex := 0;
+  AjustarUltimaColuna(StrGrdManejo);
+end;
+
+constructor TFrmManejo.Create(POwner: TComponent; PManejoController: TManejoController;
+                               PTipoManejoController: TTipoManejoController);
+begin
+  inherited Create(POwner);
+  FManejoController := PManejoController;
+  FTipoManejoController := PTipoManejoController;
+  ConfigurarGrid;
+end;
+
+destructor TFrmManejo.Destroy;
+begin
+  FTipoManejoController.Free;
+  FManejoController.Free;
+  inherited;
+end;
+
+procedure TFrmManejo.EdtLocalizarChange(Sender: TObject);
+begin
+  CarregarGrid(CPesquisar);
+end;
+
+procedure TFrmManejo.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+end;
+
+procedure TFrmManejo.FormDestroy(Sender: TObject);
+begin
+  //Isso aqui envia a mensagem ao form pai para habilitar  o botão que o chamou.
+  if (Owner is TForm) and not (csDestroying in TForm(Owner).ComponentState) then
+    PostMessage(TForm(Owner).Handle, WM_USER + 1234, 0, 0);
+end;
+
+procedure TFrmManejo.FormResize(Sender: TObject);
+begin
+  AjustarUltimaColuna(StrGrdManejo);
+end;
+
+procedure TFrmManejo.FormShow(Sender: TObject);
+begin
+  CarregarGrid(CListar);
+  EdtLocalizar.SetFocus;
+end;
+
+function TFrmManejo.ObterOrdenacao: string;
+begin
+  case RgOrdenacao.ItemIndex of
+    0: Result := 'id_manejo';
+    1: Result := 'm.descricao';
+    2: Result := 'descricao_tipomanejo';
+    3: Result := 'descricao_cultura';
+    4: Result := 'data_manejo';
+    5: Result := 'quantidade';
+    6: Result := 'unidade';
+    7: Result := 'observacao';
+  else
+    Result := 'id_manejo';
+  end;
+end;
+procedure TFrmManejo.PintarPrimeiraLinhaNaGrid(Sender: TObject; ACol,
+  ARow: LongInt; Rect: TRect; State: TGridDrawState);
+var
+  Texto: string;
+  LGrid: TStringGrid;
+begin
+  if not (Sender is TStringGrid) then
+    Exit;
+
+  LGrid := TStringGrid(Sender);
+
+  if ARow = 0 then
+  begin
+    Texto := LGrid.Cells[ACol, ARow];
+
+    LGrid.Canvas.Brush.Color := clBtnFace;
+    LGrid.Canvas.FillRect(Rect);
+
+    LGrid.Canvas.Font.Style := [fsBold];
+
+    DrawText(
+      LGrid.Canvas.Handle,
+      PChar(Texto),
+      Length(Texto),
+      Rect,
+      DT_LEFT or DT_VCENTER or DT_SINGLELINE
+    );
+  end;
+end;
+
+procedure TFrmManejo.RgOrdenacaoClick(Sender: TObject);
+begin
+  CarregarGrid(CPesquisar);
+end;
+
+procedure TFrmManejo.AjustarUltimaColuna(PGrid: TStringGrid);
+var
+  I, LLarguraOcupada: Integer;
+begin
+  LLarguraOcupada := 0;
+
+  // Soma a largura de todas as colunas anteriores (no seu caso, apenas a coluna 0)
+  for I := 0 to PGrid.ColCount - 2 do
+    LLarguraOcupada := LLarguraOcupada + PGrid.ColWidths[I];
+
+  // O pulo do gato: ClientWidth já desconta as bordas.
+  // Subtraímos 4 pixels de margem de segurança para evitar a scrollbar horizontal.
+  PGrid.ColWidths[PGrid.ColCount - 1] := PGrid.ClientWidth - LLarguraOcupada - 4;
+end;
+
+procedure TFrmManejo.Atualizar;
+var
+  LFrmEditarManejo: TFrmEditarManejo;
+  LIdManejo: Integer;
+begin
+  if StrGrdManejo.Row <= 0 then
+  begin
+    MessageBox(Handle, PChar('Selecione um registro.'), 'HortiSys',
+      MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    Exit;
+  end;
+
+  LIdManejo := StrToIntDef(StrGrdManejo.Cells[0, StrGrdManejo.Row], 0);
+
+  if LIdManejo = 0 then
+    Exit;
+
+  LFrmEditarManejo := TFrmEditarManejo.Create(Self);
+  try
+    LFrmEditarManejo.ModoEdicao(LIdManejo);
+    LFrmEditarManejo.ShowModal;
+    CarregarGrid(CListar);
+  finally
+    LFrmEditarManejo.Free;
+  end;
+end;
+
+procedure TFrmManejo.SbtnEditarClick(Sender: TObject);
+begin
+  Atualizar;
+end;
+
+procedure TFrmManejo.SbtnExcluirClick(Sender: TObject);
+begin
+  Excluir;
+end;
+
+procedure TFrmManejo.Excluir;
+var
+  LId: Integer;
+begin
+  if StrGrdManejo.Row <= 0 then
+  begin
+    MessageBox(Handle, PChar('Selecione um registro.'), 'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    Exit;
+  end;
+
+  LId := StrToIntDef(StrGrdManejo.Cells[0, StrGrdManejo.Row], 0);
+
+  if LId = 0 then
+    Exit;
+
+  if MessageBox(Handle, PChar('Confirma a exclusão do registro?.'), 'HortiSys', MB_YESNO or MB_ICONQUESTION or MB_TASKMODAL) = IDYES then
+  begin
+    FManejoController.Excluir(LId);
+    CarregarGrid(CListar);
+  end;
+end;
+
+procedure TFrmManejo.SbtnNovoClick(Sender: TObject);
+begin
+  Inserir;
+end;
+
+procedure TFrmManejo.Inserir;
+var
+  LFrmEditarManejo: TFrmEditarManejo;
+begin
+  LFrmEditarManejo := TFrmEditarManejo.Create(Self);
+  try
+    LFrmEditarManejo.ModoInsercao;
+    LFrmEditarManejo.ShowModal;
+
+    CarregarGrid(CListar);
+  finally
+    LFrmEditarManejo.Free;
+  end;
+end;
+
+procedure TFrmManejo.SbtnRelatorioClick(Sender: TObject);
+var
+  LFrmRelatorioManejo: TFrmRelatorioManejo;
+begin
+  LFrmRelatorioManejo := TProviderFactory.NewRelatorioManejoView(Self);
+  LFrmRelatorioManejo.CarregarRelatorio(EdtLocalizar.Text, ObterOrdenacao);
+end;
+
+procedure TFrmManejo.SbtnSairClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TFrmManejo.StrGrdManejoDblClick(Sender: TObject);
+begin
+  Atualizar;
+end;
+
+procedure TFrmManejo.StrGrdManejoDrawCell(Sender: TObject; ACol,
+  ARow: Integer; Rect: TRect; State: TGridDrawState);
+begin
+  PintarPrimeiraLinhaNaGrid(Sender, ACol, ARow, Rect, State);
+end;
+
+end.

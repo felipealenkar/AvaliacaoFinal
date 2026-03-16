@@ -39,12 +39,12 @@ begin
       LQuery.SQL.Text :=
         Format('INSERT INTO %s.cultura ' +
         '(nome, id_tipocultura, data_plantio, ativo, foto) ' +
-        'VALUES (:PNome,:PId_TipoCultura,:PData_Plantio,:PAtivo,:PFoto)',
+        'VALUES (:PNome,:PIdTipoCultura,:PDataPlantio,:PAtivo,:PFoto)',
         [TDBStart.NomeSchema]);
 
       LQuery.ParamByName('PNome').AsString := PCultura.Nome;
-      LQuery.ParamByName('PId_TipoCultura').AsInteger := PCultura.IdTipoCultura;
-      LQuery.ParamByName('PData_Plantio').AsDateTime := PCultura.DataPlantio;
+      LQuery.ParamByName('PIdTipoCultura').AsInteger := PCultura.IdTipoCultura;
+      LQuery.ParamByName('PDataPlantio').AsDateTime := PCultura.DataPlantio;
       LQuery.ParamByName('PAtivo').AsBoolean := PCultura.Ativo;
 
       LQuery.ParamByName('PFoto').DataType := ftBlob;
@@ -81,16 +81,16 @@ begin
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('UPDATE %s.cultura SET ' +
-                                'nome=:PNome, id_tipocultura=:PId_TipoCultura, data_plantio=:PData_Plantio, ' +
+                                'nome=:PNome, id_tipocultura=:PIdTipoCultura, data_plantio=:PDataPlantio, ' +
                                 'ativo=:PAtivo, foto=:PFoto ' +
-                                'WHERE id_cultura=:PId_Cultura',
+                                'WHERE id_cultura=:PIdCultura',
                                 [TDBStart.NomeSchema]);
 
       LQuery.ParamByName('PNome').AsString := PCultura.Nome;
-      LQuery.ParamByName('PId_TipoCultura').AsInteger := PCultura.IdTipoCultura;
-      LQuery.ParamByName('PData_Plantio').AsDateTime := PCultura.DataPlantio;
+      LQuery.ParamByName('PIdTipoCultura').AsInteger := PCultura.IdTipoCultura;
+      LQuery.ParamByName('PDataPlantio').AsDateTime := PCultura.DataPlantio;
       LQuery.ParamByName('PAtivo').AsBoolean := PCultura.Ativo;
-      LQuery.ParamByName('PId_Cultura').AsInteger := PCultura.IdCultura;
+      LQuery.ParamByName('PIdCultura').AsInteger := PCultura.IdCultura;
 
       LQuery.ParamByName('PFoto').DataType := ftBlob;
       if PCultura.Foto.Size > 0 then
@@ -125,8 +125,8 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
-      LQuery.SQL.Text := Format('DELETE FROM %s.cultura WHERE id_cultura=:PId_Cultura', [TDBStart.NomeSchema]);
-      LQuery.ParamByName('PId_Cultura').AsInteger := PIdCultura;
+      LQuery.SQL.Text := Format('DELETE FROM %s.cultura WHERE id_cultura=:PIdCultura', [TDBStart.NomeSchema]);
+      LQuery.ParamByName('PIdCultura').AsInteger := PIdCultura;
       LQuery.ExecSQL;
     except
       on E:Exception do
@@ -151,9 +151,9 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('SELECT 1 FROM %s.cultura ' +
-                                'WHERE UPPER(nome) = UPPER(:PNome) AND id_cultura <> :PId_Cultura' ,[TDBStart.NomeSchema]);
+                                'WHERE UPPER(nome) = UPPER(:PNome) AND id_cultura <> :PIdIgnorar' ,[TDBStart.NomeSchema]);
       LQuery.ParamByName('PNome').AsString := Trim(PNome);
-      LQuery.ParamByName('PId_Cultura').AsInteger := PIdIgnorar;
+      LQuery.ParamByName('PIdIgnorar').AsInteger := PIdIgnorar;
       LQuery.Open;
       Result := not LQuery.Eof;
     except
@@ -239,8 +239,8 @@ begin
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('SELECT id_cultura, nome, id_tipocultura, data_plantio, ativo, foto ' +
-                         'FROM %s.cultura WHERE id_cultura = :PId_Cultura', [TDBStart.NomeSchema]);
-      LQuery.ParamByName('PId_Cultura').AsInteger := PId;
+                         'FROM %s.cultura WHERE id_cultura = :PIdCultura', [TDBStart.NomeSchema]);
+      LQuery.ParamByName('PIdCultura').AsInteger := PId;
       LQuery.Open;
 
       if not LQuery.Eof then
@@ -296,15 +296,15 @@ begin
         'FROM %0:s.cultura c ' +
         'JOIN %0:s.tipocultura tc ' +
         'ON tc.id_tipocultura = c.id_tipocultura ' +
-        'WHERE CAST(id_cultura AS TEXT) ilike CAST(:PId_Cultura AS TEXT) or ' +
+        'WHERE CAST(id_cultura AS TEXT) ilike CAST(:PIdCultura AS TEXT) or ' +
         '%0:s.sem_acento(nome::text) ilike %0:s.sem_acento(:PNome::text) or ' +
-        '%0:s.sem_acento(descricao::text) ilike %0:s.sem_acento(:PDescricao_tipo::text)' +
+        '%0:s.sem_acento(descricao::text) ilike %0:s.sem_acento(:PDescricaoTipo::text)' +
         'ORDER BY &POrdenacao',
         [TDBStart.NomeSchema]);
 
-      LQuery.ParamByName('PId_Cultura').AsString := '%' + PBusca + '%';
+      LQuery.ParamByName('PIdCultura').AsString := '%' + PBusca + '%';
       LQuery.ParamByName('PNome').AsString := '%' + PBusca + '%';
-      LQuery.ParamByName('PDescricao_tipo').AsString := '%' + PBusca + '%';
+      LQuery.ParamByName('PDescricaoTipo').AsString := '%' + PBusca + '%';
       LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
       LQuery.Open;
 

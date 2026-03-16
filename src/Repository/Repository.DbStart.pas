@@ -15,6 +15,7 @@ type
     procedure CriarDatabase;
     procedure CriarSchema;
     procedure CriarTabelaTipoCultura;
+    procedure CriarTabelaTipoManejo;
     procedure CriarTabelaCultura;
     procedure CriarTabelaManejo;
     function ExistirBancoDeDados: Boolean;
@@ -39,7 +40,7 @@ end;
 procedure TDbStartRepository.CriarSchema;
 begin
   ExecSQL(TDBStart.NomeDatabase,
-          Format('CREATE SCHEMA IF NOT EXISTS "%s"', [TDBStart.NomeSchema]));
+          Format('CREATE SCHEMA IF NOT EXISTS %s', [TDBStart.NomeSchema]));
   ExecSQL(TDBStart.NomeDatabase, Format('CREATE OR REPLACE FUNCTION %s.sem_acento(text) '
                                         + 'RETURNS text AS $$ '
                                         + 'SELECT translate($1, '
@@ -51,7 +52,7 @@ end;
 procedure TDbStartRepository.CriarTabelaCultura;
 begin
   ExecSQL(TDBStart.NomeDatabase,
-          Format('CREATE TABLE IF NOT EXISTS "%s".cultura ('
+          Format('CREATE TABLE IF NOT EXISTS %s.cultura ('
                 + 'id_cultura SERIAL PRIMARY KEY,'
                 + 'nome VARCHAR(60) NOT NULL UNIQUE,'
                 + 'id_tipocultura INTEGER NOT NULL,'
@@ -59,29 +60,42 @@ begin
                 + 'ativo BOOLEAN NOT NULL DEFAULT TRUE,'
                 + 'foto BYTEA,'
                 + 'CONSTRAINT fk_tipocultura FOREIGN KEY (id_tipocultura) '
-                + 'REFERENCES "%s".tipocultura(id_tipocultura))'
+                + 'REFERENCES %s.tipocultura(id_tipocultura))'
                 , [TDBStart.NomeSchema, TDBStart.NomeSchema]));
 end;
 
 procedure TDbStartRepository.CriarTabelaManejo;
 begin
   ExecSQL(TDBStart.NomeDatabase,
-          Format('CREATE TABLE IF NOT EXISTS "%s".manejo ('
+          Format('CREATE TABLE IF NOT EXISTS %s.manejo ('
                 + 'id_manejo SERIAL PRIMARY KEY,'
+                + 'descricao VARCHAR(50) NOT NULL,'
+                + 'id_tipomanejo INTEGER NOT NULL,'
                 + 'id_cultura INTEGER NOT NULL,'
-                + 'data DATE NOT NULL,'
-                + 'tipo VARCHAR(40) NOT NULL,'
+                + 'data_manejo TIMESTAMP NOT NULL,'
+                + 'quantidade NUMERIC(10,3),'
+                + 'unidade VARCHAR(10),'
                 + 'observacao TEXT,'
+                + 'CONSTRAINT fk_tipomanejo FOREIGN KEY (id_tipomanejo) '
+                + 'REFERENCES %s.tipomanejo(id_tipomanejo),'
                 + 'CONSTRAINT fk_cultura FOREIGN KEY (id_cultura) '
-                + 'REFERENCES "%s".cultura(id_cultura)'
-                + ')', [TDBStart.NomeSchema, TDBStart.NomeSchema]));
+                + 'REFERENCES %s.cultura(id_cultura)'
+                + ')', [TDBStart.NomeSchema, TDBStart.NomeSchema, TDBStart.NomeSchema]));
 end;
 
 procedure TDbStartRepository.CriarTabelaTipoCultura;
 begin
   ExecSQL(TDBStart.NomeDatabase,
-          Format('CREATE TABLE IF NOT EXISTS "%s".tipocultura'
+          Format('CREATE TABLE IF NOT EXISTS %s.tipocultura'
                 + '(id_tipocultura SERIAL PRIMARY KEY,'
+                + 'descricao VARCHAR(50) NOT NULL UNIQUE)', [TDBStart.NomeSchema]));
+end;
+
+procedure TDbStartRepository.CriarTabelaTipoManejo;
+begin
+  ExecSQL(TDBStart.NomeDatabase,
+          Format('CREATE TABLE IF NOT EXISTS %s.tipomanejo'
+                + '(id_tipomanejo SERIAL PRIMARY KEY,'
                 + 'descricao VARCHAR(50) NOT NULL UNIQUE)', [TDBStart.NomeSchema]));
 end;
 

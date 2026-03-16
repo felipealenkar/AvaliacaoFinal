@@ -1,0 +1,383 @@
+unit View.Cultura;
+
+interface
+
+uses
+  DataModule.Icons, View.EditarCultura, View.RelatorioTipoCultura, View.RelatorioCultura, Model.TipoCultura, Model.Cultura,
+  Controller.Cultura, Controller.TipoCultura, Controller.ApiCultura,
+  System.Generics.Collections,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
+  Vcl.Grids, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList,
+  Vcl.Imaging.pngimage;
+
+type
+  TFrmCultura = class(TForm)
+    PnlCultura: TPanel;
+    grpCultura: TGroupBox;
+    LblLocalizar: TLabel;
+    StrGrdCultura: TStringGrid;
+    FlwPnlCultura: TFlowPanel;
+    SbtnNovo: TSpeedButton;
+    SbtnEditar: TSpeedButton;
+    SbtnExcluir: TSpeedButton;
+    SbtnRelatorio: TSpeedButton;
+    RgOrdenacao: TRadioGroup;
+    VimgLCultura: TVirtualImageList;
+    EdtLocalizar: TEdit;
+    ImgFoto: TImage;
+    PnlSair: TPanel;
+    SbtnSair: TSpeedButton;
+    procedure SbtnSairClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
+    procedure StrGrdCulturaDrawCell(Sender: TObject; ACol, ARow: LongInt;
+      Rect: TRect; State: TGridDrawState);
+    procedure RgOrdenacaoClick(Sender: TObject);
+    procedure SbtnExcluirClick(Sender: TObject);
+    procedure EdtLocalizarChange(Sender: TObject);
+    procedure SbtnRelatorioClick(Sender: TObject);
+    procedure SbtnNovoClick(Sender: TObject);
+    procedure SbtnEditarClick(Sender: TObject);
+    procedure StrGrdCulturaDblClick(Sender: TObject);
+    procedure StrGrdCulturaSelectCell(Sender: TObject; ACol, ARow: LongInt;
+      var CanSelect: Boolean);
+  private
+    FCulturaController: TCulturaController;
+    FTipoCulturaController: TTipoCulturaController;
+
+    procedure ConfigurarGrid;
+    procedure CarregarGrid(PAcao: String);
+    procedure PintarPrimeiraLinhaNaGrid(Sender: TObject; ACol, ARow: LongInt; Rect: TRect; State: TGridDrawState);
+    procedure AjustarUltimaColuna(PGrid: TStringGrid);
+
+    procedure CarregarFotoCultura(PIdCultura: Integer);
+    function ObterOrdenacao: string;
+    procedure Inserir;
+    procedure Atualizar;
+    procedure Excluir;
+    function BoolToSimNao(PValor: Boolean): string;
+    { Private declarations }
+  public
+    constructor Create(POwner: TComponent; PCulturaController: TCulturaController;
+                      PTipoCulturaController: TTipoCulturaController); reintroduce;
+    destructor Destroy; override;
+    { Public declarations }
+  end;
+
+  const CListar: string = 'Listar';
+  const CPesquisar: string = 'Pesquisar';
+
+implementation
+
+{$R *.dfm}
+
+uses Factory.Provider;
+
+{ TFrmCultura }
+
+function TFrmCultura.BoolToSimNao(PValor: Boolean): string;
+begin
+  if PValor then
+    Result := 'Sim'
+  else
+    Result := 'Não';
+end;
+
+procedure TFrmCultura.CarregarFotoCultura(PIdCultura: Integer);
+var
+  LCultura: TCultura;
+  LVimgCultura: TBitmap;
+begin
+  ImgFoto.Picture := nil;
+  LVimgCultura := nil;
+  LCultura := FCulturaController.ObterPorId(PIdCultura);
+  try
+    if Assigned(LCultura.Foto) and (LCultura.Foto.Size > 0) then
+    begin
+      LCultura.Foto.Position := 0;
+      ImgFoto.Picture.LoadFromStream(LCultura.Foto);
+    end
+    else
+    begin
+      LVimgCultura := DmIcons.ImgCltIcons.GetBitmap(13, ImgFoto.Width, ImgFoto.Height);
+      ImgFoto.Picture.Bitmap := LVimgCultura;
+    end;
+  finally
+    LVimgCultura.Free;
+    LCultura.Free;
+  end;
+end;
+
+procedure TFrmCultura.CarregarGrid(PAcao: String);
+var
+  LLista: TObjectList<TCultura>;
+  I: Integer;
+begin
+  StrGrdCultura.BeginUpdate;
+  LLista := nil;
+  try
+    if PAcao = CListar then LLista := FCulturaController.Listar(ObterOrdenacao);
+    if PAcao = CPesquisar then LLista := FCulturaController.Pesquisar(EdtLocalizar.Text, ObterOrdenacao);
+
+    StrGrdCultura.RowCount := LLista.Count + 1;
+
+    for I := 0 to LLista.Count - 1 do
+    begin
+      StrGrdCultura.Cells[0, I + 1] := LLista[I].IdCultura.ToString;
+      StrGrdCultura.Cells[1, I + 1] := LLista[I].Nome;
+      StrGrdCultura.Cells[2, I + 1] := LLista[I].DescricaoTipoCultura;
+      StrGrdCultura.Cells[3, I + 1] := DateTimeToStr(LLista[I].DataPlantio);
+      StrGrdCultura.Cells[4, I + 1] := BoolToSimNao(LLista[I].Ativo);
+    end;
+
+    if StrGrdCultura.RowCount > 1 then
+    begin
+      StrGrdCultura.Row := 1;
+      CarregarFotoCultura(StrToInt(StrGrdCultura.Cells[0,1]));
+    end
+    else
+      ImgFoto.Picture := nil;
+  finally
+    StrGrdCultura.EndUpdate;
+    LLista.Free;
+  end;
+end;
+
+procedure TFrmCultura.ConfigurarGrid;
+begin
+  StrGrdCultura.ColCount := 5;
+  StrGrdCultura.FixedRows := 1;
+  StrGrdCultura.FixedCols := 0;
+
+  StrGrdCultura.Cells[0,0] := 'Id';
+  StrGrdCultura.Cells[1,0] := 'Descrição';
+  StrGrdCultura.Cells[2,0] := 'Tipo';
+  StrGrdCultura.Cells[3,0] := 'Data/Hora Plantio';
+  StrGrdCultura.Cells[4,0] := 'Ativa';
+
+  StrGrdCultura.ColWidths[0] := 40;
+  StrGrdCultura.ColWidths[1] := 164;
+  StrGrdCultura.ColWidths[2] := StrGrdCultura.ColWidths[1];
+  StrGrdCultura.ColWidths[3] := 182;
+  StrGrdCultura.ColWidths[4] := 60;
+
+  RgOrdenacao.ItemIndex := 0;
+  AjustarUltimaColuna(StrGrdCultura);
+  AjustarUltimaColuna(StrGrdCultura);
+end;
+
+constructor TFrmCultura.Create(POwner: TComponent; PCulturaController: TCulturaController;
+                               PTipoCulturaController: TTipoCulturaController);
+begin
+  inherited Create(POwner);
+  FCulturaController := PCulturaController;
+  FTipoCulturaController := PTipoCulturaController;
+  ConfigurarGrid;
+end;
+
+destructor TFrmCultura.Destroy;
+begin
+  FTipoCulturaController.Free;
+  FCulturaController.Free;
+  inherited;
+end;
+
+procedure TFrmCultura.EdtLocalizarChange(Sender: TObject);
+begin
+  CarregarGrid(CPesquisar);
+end;
+
+procedure TFrmCultura.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+end;
+
+procedure TFrmCultura.FormDestroy(Sender: TObject);
+begin
+  //Isso aqui envia a mensagem ao form pai para habilitar  o botão que o chamou.
+  if (Owner is TForm) and not (csDestroying in TForm(Owner).ComponentState) then
+    PostMessage(TForm(Owner).Handle, WM_USER + 1234, 0, 0);
+end;
+
+procedure TFrmCultura.FormShow(Sender: TObject);
+begin
+  CarregarGrid(CListar);
+  EdtLocalizar.SetFocus;
+end;
+
+function TFrmCultura.ObterOrdenacao: string;
+begin
+  case RgOrdenacao.ItemIndex of
+    0: Result := 'id_cultura';
+    1: Result := 'nome';
+    2: Result := 'data_plantio';
+    3: Result := 'descricao';
+  end;
+end;
+
+procedure TFrmCultura.PintarPrimeiraLinhaNaGrid(Sender: TObject; ACol,
+  ARow: LongInt; Rect: TRect; State: TGridDrawState);
+var
+  Texto: string;
+  LGrid: TStringGrid;
+begin
+  if not (Sender is TStringGrid) then
+    Exit;
+
+  LGrid := TStringGrid(Sender);
+
+  if ARow = 0 then
+  begin
+    Texto := LGrid.Cells[ACol, ARow];
+
+    LGrid.Canvas.Brush.Color := clBtnFace;
+    LGrid.Canvas.FillRect(Rect);
+
+    LGrid.Canvas.Font.Style := [fsBold];
+
+    DrawText(
+      LGrid.Canvas.Handle,
+      PChar(Texto),
+      Length(Texto),
+      Rect,
+      DT_LEFT or DT_VCENTER or DT_SINGLELINE
+    );
+  end;
+end;
+
+procedure TFrmCultura.RgOrdenacaoClick(Sender: TObject);
+begin
+  CarregarGrid(CPesquisar);
+end;
+
+procedure TFrmCultura.AjustarUltimaColuna(PGrid: TStringGrid);
+var
+  I, LLarguraOcupada: Integer;
+begin
+  LLarguraOcupada := 0;
+
+  // Soma a largura de todas as colunas anteriores (no seu caso, apenas a coluna 0)
+  for I := 0 to PGrid.ColCount - 2 do
+    LLarguraOcupada := LLarguraOcupada + PGrid.ColWidths[I];
+
+  // Subtraímos 4 pixels de margem de segurança para evitar a scrollbar horizontal.
+  PGrid.ColWidths[PGrid.ColCount - 1] := PGrid.ClientWidth - LLarguraOcupada - 1;
+end;
+
+procedure TFrmCultura.Atualizar;
+var
+  LFrmEditarCultura: TFrmEditarCultura;
+  LIdCultura: Integer;
+begin
+  if StrGrdCultura.Row <= 0 then
+  begin
+    MessageBox(Handle, PChar('Selecione um registro.'), 'HortiSys',
+      MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    Exit;
+  end;
+
+  LIdCultura := StrToIntDef(StrGrdCultura.Cells[0, StrGrdCultura.Row], 0);
+
+  if LIdCultura = 0 then
+    Exit;
+
+  LFrmEditarCultura := TFrmEditarCultura.Create(Self);
+  try
+    LFrmEditarCultura.ModoEdicao(LIdCultura);
+    LFrmEditarCultura.ShowModal;
+    CarregarGrid(CListar);
+  finally
+    LFrmEditarCultura.Free;
+  end;
+end;
+
+procedure TFrmCultura.SbtnEditarClick(Sender: TObject);
+begin
+  Atualizar;
+end;
+
+procedure TFrmCultura.SbtnExcluirClick(Sender: TObject);
+begin
+  Excluir;
+end;
+
+procedure TFrmCultura.Excluir;
+var
+  LId: Integer;
+begin
+  if StrGrdCultura.Row <= 0 then
+  begin
+    MessageBox(Handle, PChar('Selecione um registro.'), 'HortiSys', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    Exit;
+  end;
+
+  LId := StrToIntDef(StrGrdCultura.Cells[0, StrGrdCultura.Row], 0);
+
+  if LId = 0 then
+    Exit;
+
+  if MessageBox(Handle, PChar('Confirma a exclusão do registro?.'), 'HortiSys', MB_YESNO or MB_ICONQUESTION or MB_TASKMODAL) = IDYES then
+  begin
+    FCulturaController.Excluir(LId);
+    CarregarGrid(CListar);
+  end;
+end;
+
+procedure TFrmCultura.SbtnNovoClick(Sender: TObject);
+begin
+  Inserir;
+end;
+
+procedure TFrmCultura.Inserir;
+var
+  LFrmEditarCultura: TFrmEditarCultura;
+begin
+  LFrmEditarCultura := TFrmEditarCultura.Create(Self);
+  try
+    LFrmEditarCultura.ModoInsercao;
+    LFrmEditarCultura.ShowModal;
+
+    CarregarGrid(CListar);
+  finally
+    LFrmEditarCultura.Free;
+  end;
+end;
+
+procedure TFrmCultura.SbtnRelatorioClick(Sender: TObject);
+var
+  LFrmRelatorioCultura: TFrmRelatorioCultura;
+begin
+  LFrmRelatorioCultura := TProviderFactory.NewRelatorioCulturaView(Self);
+  LFrmRelatorioCultura.CarregarRelatorio(EdtLocalizar.Text, ObterOrdenacao);
+end;
+
+procedure TFrmCultura.SbtnSairClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TFrmCultura.StrGrdCulturaDblClick(Sender: TObject);
+begin
+  Atualizar;
+end;
+
+procedure TFrmCultura.StrGrdCulturaDrawCell(Sender: TObject; ACol,
+  ARow: Integer; Rect: TRect; State: TGridDrawState);
+begin
+  PintarPrimeiraLinhaNaGrid(Sender, ACol, ARow, Rect, State);
+end;
+
+procedure TFrmCultura.StrGrdCulturaSelectCell(Sender: TObject; ACol, ARow: LongInt; var CanSelect: Boolean);
+var
+  LIdCultura: Integer;
+begin
+  if ARow > 0 then
+  begin
+    LIdCultura := StrToIntDef(StrGrdCultura.Cells[0, ARow], 0);
+    CarregarFotoCultura(LIdCultura);
+  end;
+end;
+
+end.

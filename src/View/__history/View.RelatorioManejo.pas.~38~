@@ -1,0 +1,167 @@
+unit View.RelatorioManejo;
+
+interface
+
+uses
+  Controller.Manejo, Controller.Cultura, Model.Cultura, Model.Manejo, DataModule.Icons,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Generics.Collections,
+  System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, RLReport, Vcl.Imaging.pngimage,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, RLPreviewForm;
+
+type
+  TFrmRelatorioManejo = class(TForm)
+    RlrMaster: TRLReport;
+    rlbndRlbCabecalho: TRLBand;
+    rldrw1: TRLDraw;
+    img1: TRLImage;
+    rlbl1: TRLLabel;
+    rlbl2: TRLLabel;
+    rlsystmnf1: TRLSystemInfo;
+    rldrw2: TRLDraw;
+    rlbndDetalhe: TRLBand;
+    rlbndRodapé: TRLBand;
+    rldrw3: TRLDraw;
+    rlbl3: TRLLabel;
+    rlsystmnf2: TRLSystemInfo;
+    rlbl4: TRLLabel;
+    DbTextIdentificador: TRLDBText;
+    DbTextDescricao: TRLDBText;
+    rlbl5: TRLLabel;
+    rlbl6: TRLLabel;
+    DbTextTipo: TRLDBText;
+    DbTextDataManejo: TRLDBText;
+    rlbl61: TRLLabel;
+    rlbl611: TRLLabel;
+    DbTextDescricaoCultura: TRLDBText;
+    rlbl612: TRLLabel;
+    DbTextQuantidade: TRLDBText;
+    rlbl6121: TRLLabel;
+    DbTextUnidade: TRLDBText;
+    rldrw4: TRLDraw;
+    rlbl6122: TRLLabel;
+    DbMemoObservacao: TRLDBMemo;
+  private
+    FCulturaController: TCulturaController;
+    FManejoController: TManejoController;
+    function BoolToSimNao(PValor: Boolean): string;
+  public
+    procedure CarregarRelatorio(PBusca, POrdenacao: string);
+    constructor Create(POwner: TComponent; PManejoController: TManejoController); reintroduce;
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{$R *.dfm}
+
+function TFrmRelatorioManejo.BoolToSimNao(PValor: Boolean): string;
+begin
+  if PValor then
+    Result := 'Sim'
+  else
+    Result := 'Não';
+end;
+
+{ TFrmRelatorioTipoCultura }
+
+procedure TFrmRelatorioManejo.CarregarRelatorio(PBusca, POrdenacao: string);
+var
+  LDFMTableManejo: TFDMemTable;
+  LDsManejo: TDataSource;
+  LLista: TObjectList<TManejo>;
+  I: Integer;
+  LPreviewSetup: TRLPreviewSetup;
+begin
+  LLista := nil;
+  LDFMTableManejo := nil;
+  LDsManejo := nil;
+  LPreviewSetup := nil;
+
+  try
+    try
+      LDFMTableManejo := TFDMemTable.Create(nil);
+      LDFMTableManejo.FieldDefs.Add('id_manejo', ftInteger);
+      LDFMTableManejo.FieldDefs.Add('descricao', ftString, 50, True);
+      LDFMTableManejo.FieldDefs.Add('id_tipomanejo', ftInteger);
+      LDFMTableManejo.FieldDefs.Add('id_cultura', ftInteger);
+      LDFMTableManejo.FieldDefs.Add('descricao_cultura', ftString, 50, True);
+      LDFMTableManejo.FieldDefs.Add('descricao_tipomanejo', ftString, 50, True);
+      LDFMTableManejo.FieldDefs.Add('data_manejo', ftDateTime);
+      LDFMTableManejo.FieldDefs.Add('quantidade', ftFloat);
+      LDFMTableManejo.FieldDefs.Add('unidade', ftString, 10, True);
+      LDFMTableManejo.FieldDefs.Add('observacao', ftString, 500, True);
+
+      LDFMTableManejo.CreateDataSet;
+
+      LDsManejo := TDataSource.Create(nil);
+      LDsManejo.DataSet := LDFMTableManejo;
+
+      LLista := FManejoController.Pesquisar(PBusca, POrdenacao);
+
+      for I := 0 to LLista.Count -1 do
+      begin
+        LDFMTableManejo.Append;
+        LDFMTableManejo.FieldByName('id_Manejo').AsInteger := LLista[i].IdManejo;
+        LDFMTableManejo.FieldByName('descricao').AsString := LLista[i].Descricao;
+        LDFMTableManejo.FieldByName('id_tipomanejo').AsInteger := LLista[i].IdTipoManejo;
+        LDFMTableManejo.FieldByName('id_cultura').AsInteger := LLista[i].IdCultura;
+        LDFMTableManejo.FieldByName('descricao_cultura').AsString := LLista[i].DescricaoCultura;
+        LDFMTableManejo.FieldByName('descricao_tipomanejo').AsString := LLista[i].DescricaoTipoManejo;
+        LDFMTableManejo.FieldByName('data_manejo').AsDateTime := LLista[i].DataManejo;
+        LDFMTableManejo.FieldByName('quantidade').AsFloat := LLista[i].Quantidade;
+        LDFMTableManejo.FieldByName('unidade').AsString := LLista[i].Unidade;
+        LDFMTableManejo.FieldByName('observacao').AsString := LLista[i].Observacao;
+
+        LDFMTableManejo.Post;
+      end;
+
+      RlrMaster.DataSource := LDsManejo;
+      DbTextIdentificador.DataSource := LDsManejo;
+      DbTextDescricao.DataSource := LDsManejo;
+      DbTextTipo.DataSource := LDsManejo;
+      DbTextDataManejo.DataSource := LDsManejo;
+      DbTextDescricaoCultura.DataSource := LDsManejo;
+      DbTextQuantidade.DataSource := LDsManejo;
+      DbTextUnidade.DataSource := LDsManejo;
+      DbMemoObservacao.DataSource := LDsManejo;
+
+      DbTextIdentificador.DataField := 'id_Manejo';
+      DbTextDescricao.DataField := 'descricao';
+      DbTextTipo.DataField := 'descricao_tipomanejo';
+      DbTextDataManejo.DataField := 'data_manejo';
+      DbTextDescricaoCultura.DataField := 'descricao_cultura';
+      DbTextQuantidade.DataField := 'quantidade';
+      DbTextUnidade.DataField := 'unidade';
+      DbMemoObservacao.DataField := 'observacao';
+
+      LPreviewSetup := TRLPreviewSetup.Create(nil);
+      LPreviewSetup.ZoomFactor := 85;
+      RlrMaster.Preview();
+    except
+      on E: Exception do
+        raise Exception.Create('Erro ao carregar o relatório.' + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LLista.Free;
+    LDsManejo.Free;
+    LDFMTableManejo.Free;
+    LPreviewSetup.Free;
+  end;
+end;
+
+constructor TFrmRelatorioManejo.Create(POwner: TComponent; PManejoController: TManejoController);
+begin
+  inherited Create(POwner);
+  FManejoController := PManejoController;
+end;
+
+destructor TFrmRelatorioManejo.Destroy;
+begin
+  FManejoController.Free;
+  inherited;
+end;
+
+end.

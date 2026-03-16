@@ -6,7 +6,7 @@ object FrmTipoCultura: TFrmTipoCultura
   BorderStyle = bsNone
   Caption = 'Cadatro de Tipos de cultura'
   ClientHeight = 538
-  ClientWidth = 688
+  ClientWidth = 1118
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -2130,12 +2130,13 @@ object FrmTipoCultura: TFrmTipoCultura
     FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
   OnClose = FormClose
   OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
   TextHeight = 15
   object PnlTipoCultura: TPanel
     Left = 0
     Top = 0
-    Width = 688
+    Width = 1118
     Height = 538
     Align = alClient
     ParentBackground = False
@@ -2144,7 +2145,7 @@ object FrmTipoCultura: TFrmTipoCultura
       AlignWithMargins = True
       Left = 11
       Top = 11
-      Width = 666
+      Width = 1096
       Height = 516
       Margins.Left = 10
       Margins.Top = 10
@@ -2164,7 +2165,7 @@ object FrmTipoCultura: TFrmTipoCultura
       TabOrder = 0
       StyleElements = [seFont, seBorder]
       DesignSize = (
-        666
+        1096
         516)
       object LblLocalizar: TLabel
         Left = 24
@@ -2184,8 +2185,12 @@ object FrmTipoCultura: TFrmTipoCultura
       object StrGrdTipoCultura: TStringGrid
         Left = 24
         Top = 128
-        Width = 385
+        Width = 643
         Height = 236
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
         Anchors = [akLeft, akTop, akRight, akBottom]
         BevelOuter = bvNone
         ColCount = 2
@@ -2211,22 +2216,136 @@ object FrmTipoCultura: TFrmTipoCultura
           75
           69)
       end
+      object RgOrdenacao: TRadioGroup
+        Left = 310
+        Top = 32
+        Width = 123
+        Height = 85
+        Caption = 'Ordenacao'
+        Color = 14214623
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -20
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        Items.Strings = (
+          'Id'
+          'Descri'#231#227'o')
+        ParentBackground = False
+        ParentColor = False
+        ParentFont = False
+        TabOrder = 2
+        OnClick = RgOrdenacaoClick
+      end
+      object EdtLocalizar: TEdit
+        Left = 106
+        Top = 72
+        Width = 180
+        Height = 29
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -16
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 0
+        OnChange = EdtLocalizarChange
+      end
+      object StrGrdCulturasVinculadas: TStringGrid
+        Left = 698
+        Top = 128
+        Width = 374
+        Height = 236
+        Anchors = [akTop, akRight, akBottom]
+        BevelOuter = bvNone
+        ColCount = 2
+        Ctl3D = True
+        DefaultColWidth = 75
+        DefaultRowHeight = 28
+        RowCount = 12
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -16
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goFixedRowDefAlign]
+        ParentCtl3D = False
+        ParentFont = False
+        ScrollBars = ssVertical
+        TabOrder = 3
+        StyleElements = [seFont, seBorder]
+        OnDrawCell = StrGrdCulturasVinculadasDrawCell
+        RowHeights = (
+          28
+          28
+          28
+          24
+          28
+          28
+          28
+          28
+          28
+          28
+          28
+          28)
+      end
+      object PnlSair: TPanel
+        Left = 938
+        Top = 381
+        Width = 134
+        Height = 120
+        Anchors = [akRight, akBottom]
+        Color = 14149085
+        ParentBackground = False
+        TabOrder = 4
+        DesignSize = (
+          134
+          120)
+        object SbtnSair: TSpeedButton
+          AlignWithMargins = True
+          Left = 18
+          Top = 12
+          Width = 100
+          Height = 100
+          Margins.Left = 10
+          Margins.Top = 10
+          Margins.Right = 13
+          Margins.Bottom = 5
+          Anchors = [akBottom]
+          Caption = 'Sair'
+          ImageIndex = 0
+          ImageName = 'Sair'
+          Images = VimgLTipoCultura
+          Flat = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 3093275
+          Font.Height = -21
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsBold]
+          Layout = blGlyphTop
+          Margin = 5
+          ParentFont = False
+          StyleElements = [seClient, seBorder]
+          OnClick = SbtnSairClick
+        end
+      end
       object FlwPnlTipoCultura: TFlowPanel
         AlignWithMargins = True
         Left = 24
         Top = 382
-        Width = 618
-        Height = 121
-        Margins.Left = 22
-        Margins.Right = 22
-        Margins.Bottom = 11
-        Align = alBottom
+        Width = 911
+        Height = 119
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Anchors = [akLeft, akRight, akBottom]
         Color = 14149085
         ParentBackground = False
-        TabOrder = 2
+        TabOrder = 5
         DesignSize = (
-          618
-          121)
+          911
+          119)
         object SbtnNovo: TSpeedButton
           AlignWithMargins = True
           Left = 11
@@ -2335,133 +2454,33 @@ object FrmTipoCultura: TFrmTipoCultura
           StyleElements = [seClient, seBorder]
           OnClick = SbtnRelatorioClick
         end
-        object SbtnSair: TSpeedButton
-          AlignWithMargins = True
-          Left = 502
-          Top = 11
-          Width = 100
-          Height = 100
-          Margins.Left = 10
-          Margins.Top = 10
-          Margins.Right = 13
-          Margins.Bottom = 5
-          Anchors = [akBottom]
-          Caption = 'Sair'
-          ImageIndex = 0
-          ImageName = 'Sair'
-          Images = VimgLTipoCultura
-          Flat = True
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = 3093275
-          Font.Height = -21
-          Font.Name = 'Segoe UI'
-          Font.Style = [fsBold]
-          Layout = blGlyphTop
-          Margin = 5
-          ParentFont = False
-          StyleElements = [seClient, seBorder]
-          OnClick = SbtnSairClick
-        end
-      end
-      object RgOrdenacao: TRadioGroup
-        Left = 449
-        Top = 16
-        Width = 193
-        Height = 85
-        Caption = 'Ordenacao'
-        Color = 14214623
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -20
-        Font.Name = 'Segoe UI'
-        Font.Style = []
-        Items.Strings = (
-          'Id'
-          'Descri'#231#227'o')
-        ParentBackground = False
-        ParentColor = False
-        ParentFont = False
-        TabOrder = 3
-        OnClick = RgOrdenacaoClick
-      end
-      object EdtLocalizar: TEdit
-        Left = 106
-        Top = 72
-        Width = 180
-        Height = 29
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -16
-        Font.Name = 'Segoe UI'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 0
-        OnChange = EdtLocalizarChange
-      end
-      object StrGrdCulturasVinculadas: TStringGrid
-        Left = 424
-        Top = 128
-        Width = 218
-        Height = 236
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        BevelOuter = bvNone
-        ColCount = 2
-        Ctl3D = True
-        DefaultColWidth = 75
-        DefaultRowHeight = 28
-        RowCount = 12
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -16
-        Font.Name = 'Segoe UI'
-        Font.Style = []
-        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goFixedRowDefAlign]
-        ParentCtl3D = False
-        ParentFont = False
-        ScrollBars = ssVertical
-        TabOrder = 4
-        StyleElements = [seFont, seBorder]
-        OnDrawCell = StrGrdCulturasVinculadasDrawCell
-        RowHeights = (
-          28
-          28
-          28
-          24
-          28
-          28
-          28
-          28
-          28
-          28
-          28
-          28)
       end
     end
   end
   object VimgLTipoCultura: TVirtualImageList
     Images = <
       item
-        CollectionIndex = 4
+        CollectionIndex = 3
         CollectionName = 'Sair'
         Name = 'Sair'
       end
       item
-        CollectionIndex = 5
+        CollectionIndex = 4
         CollectionName = 'Novo'
         Name = 'Novo'
       end
       item
-        CollectionIndex = 6
+        CollectionIndex = 5
         CollectionName = 'Editar'
         Name = 'Editar'
       end
       item
-        CollectionIndex = 7
+        CollectionIndex = 6
         CollectionName = 'Excluir'
         Name = 'Excluir'
       end
       item
-        CollectionIndex = 8
+        CollectionIndex = 7
         CollectionName = 'Relatorio'
         Name = 'Relatorio'
       end>
@@ -2470,5 +2489,11 @@ object FrmTipoCultura: TFrmTipoCultura
     Height = 60
     Left = 107
     Top = 331
+  end
+  object TmrLocalizar: TTimer
+    Interval = 500
+    OnTimer = TmrLocalizarTimer
+    Left = 875
+    Top = 449
   end
 end

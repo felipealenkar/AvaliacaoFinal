@@ -1,10 +1,11 @@
 ﻿object FrmPrincipal: TFrmPrincipal
   Left = 0
   Top = 0
+  Align = alClient
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'HortiSys - Tela principal'
-  ClientHeight = 753
+  ClientHeight = 887
   ClientWidth = 984
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
@@ -7771,21 +7772,23 @@
     FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC007FFFFFFFFFFFFFFFFFFFF
     FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFF}
   Position = poScreenCenter
+  WindowState = wsMaximized
   TextHeight = 15
   object PnlMenuPrincipal: TPanel
     Left = 0
     Top = 0
     Width = 289
-    Height = 753
+    Height = 887
     Margins.Left = 0
     Align = alLeft
     Color = 14149085
     ParentBackground = False
     TabOrder = 0
+    ExplicitHeight = 753
     object LblDataHora: TLabel
       AlignWithMargins = True
       Left = 4
-      Top = 724
+      Top = 858
       Width = 281
       Height = 25
       Align = alBottom
@@ -7797,13 +7800,14 @@
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
+      ExplicitTop = 724
       ExplicitWidth = 180
     end
     object PnlRelatórios: TPanel
       Left = 1
-      Top = 354
+      Top = 441
       Width = 287
-      Height = 314
+      Height = 411
       Margins.Left = 0
       Align = alTop
       Color = 14149085
@@ -7840,7 +7844,7 @@
         Margins.Bottom = 0
         Align = alTop
         Caption = 'Rel. Tipos de cultura'
-        ImageIndex = 5
+        ImageIndex = 4
         ImageName = 'Relatorio'
         Images = VimgLTelaPrincipal
         Flat = True
@@ -7857,12 +7861,87 @@
         ExplicitTop = 97
         ExplicitWidth = 271
       end
+      object SbtnRelatorioCultura: TSpeedButton
+        AlignWithMargins = True
+        Left = 4
+        Top = 167
+        Width = 279
+        Height = 75
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Rel. Cultura'
+        ImageIndex = 4
+        ImageName = 'Relatorio'
+        Images = VimgLTelaPrincipal
+        Flat = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 3093275
+        Font.Height = -21
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        Margin = 5
+        ParentFont = False
+        StyleElements = [seClient, seBorder]
+        OnClick = SbtnRelatorioCulturaClick
+        ExplicitLeft = 8
+        ExplicitTop = 175
+      end
+      object SbtnRelatorioManejo: TSpeedButton
+        AlignWithMargins = True
+        Left = 4
+        Top = 323
+        Width = 279
+        Height = 75
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Rel. Manejo'
+        ImageIndex = 4
+        ImageName = 'Relatorio'
+        Images = VimgLTelaPrincipal
+        Flat = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 3093275
+        Font.Height = -21
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        Margin = 5
+        ParentFont = False
+        StyleElements = [seClient, seBorder]
+        OnClick = SbtnRelatorioManejoClick
+        ExplicitLeft = 8
+        ExplicitTop = 167
+      end
+      object SbtnRelatorioTipoManejo: TSpeedButton
+        AlignWithMargins = True
+        Left = 4
+        Top = 245
+        Width = 279
+        Height = 75
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Rel. Tipos de manejo'
+        ImageIndex = 4
+        ImageName = 'Relatorio'
+        Images = VimgLTelaPrincipal
+        Flat = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 3093275
+        Font.Height = -21
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        Margin = 5
+        ParentFont = False
+        StyleElements = [seClient, seBorder]
+        OnClick = SbtnRelatorioTiposManejoClick
+        ExplicitLeft = 8
+        ExplicitTop = 167
+      end
     end
     object PnlCadastros: TPanel
       Left = 1
       Top = 1
       Width = 287
-      Height = 353
+      Height = 440
       Margins.Left = 0
       Align = alTop
       Color = 14149085
@@ -7896,13 +7975,13 @@
       object SbtnManejo: TSpeedButton
         AlignWithMargins = True
         Left = 4
-        Top = 248
+        Top = 326
         Width = 279
         Height = 75
         Margins.Bottom = 0
         Align = alTop
         Caption = 'Manejos'
-        ImageIndex = 3
+        ImageIndex = 2
         ImageName = 'Manejo'
         Images = VimgLTelaPrincipal
         Flat = True
@@ -7914,7 +7993,9 @@
         Margin = 5
         ParentFont = False
         StyleElements = [seClient, seBorder]
+        OnClick = SbtnManejoClick
         ExplicitLeft = 2
+        ExplicitTop = 248
         ExplicitWidth = 249
       end
       object SbtnTipoCultura: TSpeedButton
@@ -7926,8 +8007,8 @@
         Margins.Bottom = 0
         Align = alTop
         Caption = 'Tipos de cultura'
-        ImageIndex = 2
-        ImageName = 'TiposProdutos'
+        ImageIndex = 5
+        ImageName = 'TipoCultura'
         Images = VimgLTelaPrincipal
         Flat = True
         Font.Charset = DEFAULT_CHARSET
@@ -7965,15 +8046,41 @@
         ExplicitTop = 25
         ExplicitWidth = 255
       end
+      object SbtnTipoManejo: TSpeedButton
+        AlignWithMargins = True
+        Left = 4
+        Top = 248
+        Width = 279
+        Height = 75
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Tipos de manejos'
+        ImageIndex = 6
+        ImageName = 'TipoManejo'
+        Images = VimgLTelaPrincipal
+        Flat = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 3093275
+        Font.Height = -21
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        Margin = 5
+        ParentFont = False
+        StyleElements = [seClient, seBorder]
+        OnClick = SbtnTipoManejoClick
+        ExplicitLeft = 2
+        ExplicitWidth = 249
+      end
     end
   end
   object PnlPrincipal: TPanel
     Left = 289
     Top = 0
     Width = 695
-    Height = 753
+    Height = 887
     Align = alClient
     TabOrder = 1
+    ExplicitHeight = 753
     object PnlTopo: TPanel
       Left = 1
       Top = 1
@@ -7992,7 +8099,7 @@
         Margins.Bottom = 5
         Align = alRight
         Caption = 'Sair'
-        ImageIndex = 4
+        ImageIndex = 3
         ImageName = 'Sair'
         Images = VimgLTelaPrincipal
         Flat = True
@@ -8007,20 +8114,44 @@
         OnClick = SbtnSairClick
         ExplicitLeft = 608
       end
+      object SbtnMinimizar: TSpeedButton
+        AlignWithMargins = True
+        Left = 384
+        Top = 4
+        Width = 182
+        Height = 75
+        Margins.Bottom = 5
+        Align = alRight
+        Caption = 'Minimizar'
+        ImageIndex = 7
+        ImageName = 'Minimizar'
+        Images = VimgLTelaPrincipal
+        Flat = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 3093275
+        Font.Height = -21
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        Margin = 5
+        ParentFont = False
+        StyleElements = [seClient, seBorder]
+        OnClick = SbtnMinimizarClick
+      end
     end
     object PnlDesktop: TPanel
       Left = 1
       Top = 86
       Width = 693
-      Height = 666
+      Height = 800
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
+      ExplicitHeight = 666
       object VimgLogo: TVirtualImage
         Left = 0
         Top = 0
         Width = 693
-        Height = 666
+        Height = 800
         Align = alClient
         ImageCollection = DmIcons.ImgCltIcons
         ImageWidth = 0
@@ -8053,23 +8184,33 @@
       end
       item
         CollectionIndex = 2
-        CollectionName = 'TiposProdutos'
-        Name = 'TiposProdutos'
-      end
-      item
-        CollectionIndex = 3
         CollectionName = 'Manejo'
         Name = 'Manejo'
       end
       item
-        CollectionIndex = 4
+        CollectionIndex = 3
         CollectionName = 'Sair'
         Name = 'Sair'
       end
       item
-        CollectionIndex = 8
+        CollectionIndex = 7
         CollectionName = 'Relatorio'
         Name = 'Relatorio'
+      end
+      item
+        CollectionIndex = 15
+        CollectionName = 'TipoCultura'
+        Name = 'TipoCultura'
+      end
+      item
+        CollectionIndex = 16
+        CollectionName = 'TipoManejo'
+        Name = 'TipoManejo'
+      end
+      item
+        CollectionIndex = 17
+        CollectionName = 'Minimizar'
+        Name = 'Minimizar'
       end>
     ImageCollection = DmIcons.ImgCltIcons
     Width = 60

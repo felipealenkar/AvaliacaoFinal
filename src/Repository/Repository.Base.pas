@@ -45,7 +45,7 @@ begin
     on E:Exception do
     begin
       LConnection.Free;
-      raise Exception.Create(Format('Erro de conexão com o banco de dados %s', [TDBStart.NomeDatabase])
+      raise Exception.Create(Format('Erro de conexão com o banco de dados "%s"', [TDBStart.NomeDatabase])
                             + sLineBreak + sLineBreak + E.ToString);
     end;
   end;

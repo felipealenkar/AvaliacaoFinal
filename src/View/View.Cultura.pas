@@ -3,7 +3,7 @@ unit View.Cultura;
 interface
 
 uses
-  DataModule.Icons, View.EditarCultura, View.RelatorioTipoCultura, Model.TipoCultura, Model.Cultura,
+  DataModule.Icons, View.EditarCultura, View.RelatorioTipoCultura, View.RelatorioCultura, Model.TipoCultura, Model.Cultura,
   Controller.Cultura, Controller.TipoCultura, Controller.ApiCultura,
   System.Generics.Collections,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
@@ -22,11 +22,13 @@ type
     SbtnEditar: TSpeedButton;
     SbtnExcluir: TSpeedButton;
     SbtnRelatorio: TSpeedButton;
-    SbtnSair: TSpeedButton;
     RgOrdenacao: TRadioGroup;
     VimgLCultura: TVirtualImageList;
     EdtLocalizar: TEdit;
     ImgFoto: TImage;
+    PnlSair: TPanel;
+    SbtnSair: TSpeedButton;
+    TmrLocalizar: TTimer;
     procedure SbtnSairClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -42,13 +44,17 @@ type
     procedure StrGrdCulturaDblClick(Sender: TObject);
     procedure StrGrdCulturaSelectCell(Sender: TObject; ACol, ARow: LongInt;
       var CanSelect: Boolean);
+    procedure FormResize(Sender: TObject);
+    procedure TmrLocalizarTimer(Sender: TObject);
   private
     FCulturaController: TCulturaController;
     FTipoCulturaController: TTipoCulturaController;
+
     procedure ConfigurarGrid;
     procedure CarregarGrid(PAcao: String);
-    procedure PintarPrimeiraLinhaNaGrid(Sender: TObject; ACol,
-      ARow: LongInt; Rect: TRect; State: TGridDrawState);
+    procedure PintarPrimeiraLinhaNaGrid(Sender: TObject; ACol, ARow: LongInt; Rect: TRect; State: TGridDrawState);
+    procedure AjustarUltimaColuna(PGrid: TStringGrid);
+
     procedure CarregarFotoCultura(PIdCultura: Integer);
     function ObterOrdenacao: string;
     procedure Inserir;
@@ -133,7 +139,9 @@ begin
     begin
       StrGrdCultura.Row := 1;
       CarregarFotoCultura(StrToInt(StrGrdCultura.Cells[0,1]));
-    end;
+    end
+    else
+      ImgFoto.Picture := nil;
   finally
     StrGrdCultura.EndUpdate;
     LLista.Free;
@@ -144,6 +152,7 @@ procedure TFrmCultura.ConfigurarGrid;
 begin
   StrGrdCultura.ColCount := 5;
   StrGrdCultura.FixedRows := 1;
+  StrGrdCultura.FixedCols := 0;
 
   StrGrdCultura.Cells[0,0] := 'Id';
   StrGrdCultura.Cells[1,0] := 'Descrição';
@@ -158,6 +167,8 @@ begin
   StrGrdCultura.ColWidths[4] := 60;
 
   RgOrdenacao.ItemIndex := 0;
+  AjustarUltimaColuna(StrGrdCultura);
+  AjustarUltimaColuna(StrGrdCultura);
 end;
 
 constructor TFrmCultura.Create(POwner: TComponent; PCulturaController: TCulturaController;
@@ -178,7 +189,8 @@ end;
 
 procedure TFrmCultura.EdtLocalizarChange(Sender: TObject);
 begin
-  CarregarGrid(CPesquisar);
+  TmrLocalizar.Enabled := False;
+  TmrLocalizar.Enabled := True;
 end;
 
 procedure TFrmCultura.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -191,6 +203,12 @@ begin
   //Isso aqui envia a mensagem ao form pai para habilitar  o botão que o chamou.
   if (Owner is TForm) and not (csDestroying in TForm(Owner).ComponentState) then
     PostMessage(TForm(Owner).Handle, WM_USER + 1234, 0, 0);
+end;
+
+procedure TFrmCultura.FormResize(Sender: TObject);
+begin
+  AjustarUltimaColuna(StrGrdCultura);
+  AjustarUltimaColuna(StrGrdCultura);
 end;
 
 procedure TFrmCultura.FormShow(Sender: TObject);
@@ -242,6 +260,20 @@ end;
 procedure TFrmCultura.RgOrdenacaoClick(Sender: TObject);
 begin
   CarregarGrid(CPesquisar);
+end;
+
+procedure TFrmCultura.AjustarUltimaColuna(PGrid: TStringGrid);
+var
+  I, LLarguraOcupada: Integer;
+begin
+  LLarguraOcupada := 0;
+
+  // Soma a largura de todas as colunas anteriores (no seu caso, apenas a coluna 0)
+  for I := 0 to PGrid.ColCount - 2 do
+    LLarguraOcupada := LLarguraOcupada + PGrid.ColWidths[I];
+
+  // Subtraímos 4 pixels de margem de segurança para evitar a scrollbar horizontal.
+  PGrid.ColWidths[PGrid.ColCount - 1] := PGrid.ClientWidth - LLarguraOcupada - 1;
 end;
 
 procedure TFrmCultura.Atualizar;
@@ -325,10 +357,10 @@ end;
 
 procedure TFrmCultura.SbtnRelatorioClick(Sender: TObject);
 var
-  LFrmRelatorioTipoCultura: TFrmRelatorioTipoCultura;
+  LFrmRelatorioCultura: TFrmRelatorioCultura;
 begin
-  LFrmRelatorioTipoCultura := TProviderFactory.NewRelatorioTipoCulturaView(Self);
-  LFrmRelatorioTipoCultura.CarregarRelatorio(EdtLocalizar.Text, ObterOrdenacao);
+  LFrmRelatorioCultura := TProviderFactory.NewRelatorioCulturaView(Self);
+  LFrmRelatorioCultura.CarregarRelatorio(EdtLocalizar.Text, ObterOrdenacao);
 end;
 
 procedure TFrmCultura.SbtnSairClick(Sender: TObject);
@@ -356,6 +388,12 @@ begin
     LIdCultura := StrToIntDef(StrGrdCultura.Cells[0, ARow], 0);
     CarregarFotoCultura(LIdCultura);
   end;
+end;
+
+procedure TFrmCultura.TmrLocalizarTimer(Sender: TObject);
+begin
+  TmrLocalizar.Enabled := False;
+  CarregarGrid(CPesquisar);
 end;
 
 end.

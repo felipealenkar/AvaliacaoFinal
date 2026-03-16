@@ -3,7 +3,10 @@ unit View.Principal;
 interface
 
 uses
-  DataModule.Icons, View.TipoCultura, View.Cultura, View.RelatorioTipoCultura, Factory.Provider, Controller.TipoCultura,
+  DataModule.Icons, View.TipoCultura, View.Cultura, View.RelatorioTipoCultura, View.RelatorioCultura,
+  View.RelatorioTipoManejo, View.RelatorioManejo, Factory.Provider, Controller.TipoCultura, View.Manejo,
+  View.TipoManejo,
+
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
   Vcl.Imaging.pngimage, Vcl.VirtualImage, Vcl.BaseImageCollection,
@@ -28,11 +31,22 @@ type
     PnlDesktop: TPanel;
     VimgLogo: TVirtualImage;
     SbtnRelatorioTipoCultura: TSpeedButton;
+    SbtnTipoManejo: TSpeedButton;
+    SbtnMinimizar: TSpeedButton;
+    SbtnRelatorioCultura: TSpeedButton;
+    SbtnRelatorioManejo: TSpeedButton;
+    SbtnRelatorioTipoManejo: TSpeedButton;
     procedure tmrDataHoraTimer(Sender: TObject);
     procedure SbtnSairClick(Sender: TObject);
     procedure SbtnTipoCulturaClick(Sender: TObject);
     procedure SbtnRelatorioTipoCulturaClick(Sender: TObject);
     procedure SbtnCulturaClick(Sender: TObject);
+    procedure SbtnRelatorioTiposManejoClick(Sender: TObject);
+    procedure SbtnTipoManejoClick(Sender: TObject);
+    procedure SbtnManejoClick(Sender: TObject);
+    procedure SbtnMinimizarClick(Sender: TObject);
+    procedure SbtnRelatorioCulturaClick(Sender: TObject);
+    procedure SbtnRelatorioManejoClick(Sender: TObject);
   private
     procedure LimparPnlDesktop;
     procedure AbrirFormNoPnlDesktop(PForm: TForm);
@@ -61,8 +75,10 @@ end;
 procedure TFrmPrincipal.AtualizarBotoes;
 begin
   SbtnCultura.Enabled := True;
-  SbtnManejo.Enabled := True;
   SbtnTipoCultura.Enabled := True;
+  SbtnTipoManejo.Enabled := True;
+  SbtnManejo.Enabled := True;
+
 
   if PnlDesktop.ControlCount > 1 then
   begin
@@ -70,6 +86,10 @@ begin
       SbtnTipoCultura.Enabled := False;
     if PnlDesktop.Controls[1] is TFrmCultura then
       SbtnCultura.Enabled := False;
+    if PnlDesktop.Controls[1] is TFrmTipoManejo then
+      SbtnTipoManejo.Enabled := False;
+    if PnlDesktop.Controls[1] is TFrmManejo then
+      SbtnManejo.Enabled := False;
     // ... outros ifs aqui
   end;
 end;
@@ -90,6 +110,41 @@ begin
   AtualizarBotoes;
 end;
 
+procedure TFrmPrincipal.SbtnManejoClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewManejoView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.SbtnMinimizarClick(Sender: TObject);
+begin
+  Application.Minimize;
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioTiposManejoClick(Sender: TObject);
+var
+  LFrmRelatorioTipoManejo: TFrmRelatorioTipoManejo;
+begin
+  LFrmRelatorioTipoManejo := TProviderFactory.NewRelatorioTipoManejoView(Self);
+  LFrmRelatorioTipoManejo.CarregarRelatorio('', 'id_tipomanejo');
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioCulturaClick(Sender: TObject);
+var
+  LFrmRelatorioCultura: TFrmRelatorioCultura;
+begin
+  LFrmRelatorioCultura := TProviderFactory.NewRelatorioCulturaView(Self);
+  LFrmRelatorioCultura.CarregarRelatorio('', 'id_cultura');
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioManejoClick(Sender: TObject);
+var
+  LFrmRelatorioManejo: TFrmRelatorioManejo;
+begin
+  LFrmRelatorioManejo := TProviderFactory.NewRelatorioManejoView(Self);
+  LFrmRelatorioManejo.CarregarRelatorio('', 'id_manejo');
+end;
+
 procedure TFrmPrincipal.SbtnRelatorioTipoCulturaClick(Sender: TObject);
 var
   LFrmRelatorioTipoCultura: TFrmRelatorioTipoCultura;
@@ -106,6 +161,12 @@ end;
 procedure TFrmPrincipal.SbtnTipoCulturaClick(Sender: TObject);
 begin
   AbrirFormNoPnlDesktop(TProviderFactory.NewTipoCulturaView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.SbtnTipoManejoClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewTipoManejoView(Self));
   AtualizarBotoes;
 end;
 

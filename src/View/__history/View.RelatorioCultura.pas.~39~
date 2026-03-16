@@ -1,0 +1,157 @@
+unit View.RelatorioCultura;
+
+interface
+
+uses
+  Controller.Cultura, Model.Cultura, DataModule.Icons,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Generics.Collections, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, RLReport, Vcl.Imaging.pngimage,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, RLPreviewForm;
+
+type
+  TFrmRelatorioCultura = class(TForm)
+    RlrMaster: TRLReport;
+    rlbndRlbCabecalho: TRLBand;
+    rldrw1: TRLDraw;
+    img1: TRLImage;
+    rlbl1: TRLLabel;
+    rlbl2: TRLLabel;
+    rlsystmnf1: TRLSystemInfo;
+    rldrw2: TRLDraw;
+    rlbndDetalhe: TRLBand;
+    rlbndRodapé: TRLBand;
+    rldrw3: TRLDraw;
+    rlbl3: TRLLabel;
+    rlsystmnf2: TRLSystemInfo;
+    rlbl4: TRLLabel;
+    rldrw4: TRLDraw;
+    DbTextIdentificador: TRLDBText;
+    DbTextDescricao: TRLDBText;
+    rlbl5: TRLLabel;
+    rlbl6: TRLLabel;
+    DbTextTipo: TRLDBText;
+    DbTextDataPlantio: TRLDBText;
+    rlbl61: TRLLabel;
+    rlbl611: TRLLabel;
+    DbTextAtivo: TRLDBText;
+    DbImageFoto: TRLDBImage;
+  private
+    FCulturaController: TCulturaController;
+    function BoolToSimNao(PValor: Boolean): string;
+  public
+    procedure CarregarRelatorio(PBusca, POrdenacao: string);
+    constructor Create(POwner: TComponent; PCulturaController: TCulturaController); reintroduce;
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{$R *.dfm}
+
+function TFrmRelatorioCultura.BoolToSimNao(PValor: Boolean): string;
+begin
+  if PValor then
+    Result := 'Sim'
+  else
+    Result := 'Não';
+end;
+
+{ TFrmRelatorioTipoCultura }
+
+procedure TFrmRelatorioCultura.CarregarRelatorio(PBusca, POrdenacao: string);
+var
+  LDFMTableCultura: TFDMemTable;
+  LDsCultura: TDataSource;
+  LLista: TObjectList<TCultura>;
+  I: Integer;
+  LPreviewSetup: TRLPreviewSetup;
+begin
+  LLista := nil;
+  LDFMTableCultura := nil;
+  LDsCultura := nil;
+  LPreviewSetup := nil;
+
+  try
+    try
+      LDFMTableCultura := TFDMemTable.Create(nil);
+      LDFMTableCultura.FieldDefs.Add('id_cultura', ftInteger);
+      LDFMTableCultura.FieldDefs.Add('nome', ftString, 50, True);
+      LDFMTableCultura.FieldDefs.Add('descricao_tipo', ftString, 50, True);
+      LDFMTableCultura.FieldDefs.Add('data_plantio', ftDateTime);
+      LDFMTableCultura.FieldDefs.Add('ativo', ftString, 3, True);
+      LDFMTableCultura.FieldDefs.Add('foto', ftBlob);
+      LDFMTableCultura.CreateDataSet;
+
+      LDsCultura := TDataSource.Create(nil);
+      LDsCultura.DataSet := LDFMTableCultura;
+
+      LLista := FCulturaController.Pesquisar(PBusca, POrdenacao);
+
+      for I := 0 to LLista.Count -1 do
+      begin
+        LDFMTableCultura.Append;
+        LDFMTableCultura.FieldByName('id_cultura').AsInteger := LLista[i].IdCultura;
+        LDFMTableCultura.FieldByName('nome').AsString := LLista[i].Nome;
+        LDFMTableCultura.FieldByName('descricao_tipo').AsString := LLista[i].DescricaoTipoCultura;
+        LDFMTableCultura.FieldByName('data_plantio').AsDateTime := LLista[i].DataPlantio;
+        LDFMTableCultura.FieldByName('ativo').AsString := BoolToSimNao(LLista[i].Ativo);
+
+        var LFotoTemp := FCulturaController.ObterPorId(LLista[i].IdCultura);
+        try
+          if Assigned(LFotoTemp.Foto) and (LFotoTemp.Foto.Size > 0) then
+          begin
+            LFotoTemp.Foto.Position := 0;
+            TBlobField(LDFMTableCultura.FieldByName('foto')).LoadFromStream(LFotoTemp.Foto);
+          end;
+        finally
+          LFotoTemp.Free;
+        end;
+          //TBlobField(LDFMTableCultura.FieldByName('foto')).LoadFromStream(LFoto);
+        LDFMTableCultura.Post;
+      end;
+
+      RlrMaster.DataSource := LDsCultura;
+      DbTextIdentificador.DataSource := LDsCultura;
+      DbTextDescricao.DataSource := LDsCultura;
+      DbTextTipo.DataSource := LDsCultura;
+      DbTextDataPlantio.DataSource := LDsCultura;
+      DbTextAtivo.DataSource := LDsCultura;
+      DbImageFoto.DataSource := LDsCultura;
+
+      DbTextIdentificador.DataField := 'id_cultura';
+      DbTextDescricao.DataField := 'nome';
+      DbTextTipo.DataField := 'descricao_tipo';
+      DbTextDataPlantio.DataField := 'data_plantio';
+      DbTextAtivo.DataField := 'ativo';
+      DbImageFoto.DataField := 'foto';
+
+      LPreviewSetup := TRLPreviewSetup.Create(nil);
+      LPreviewSetup.ZoomFactor := 85;
+      RlrMaster.Preview();
+    except
+      on E: Exception do
+        raise Exception.Create('Erro ao carregar o relatório.' + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LLista.Free;
+    LDsCultura.Free;
+    LDFMTableCultura.Free;
+    LPreviewSetup.Free;
+  end;
+end;
+
+constructor TFrmRelatorioCultura.Create(POwner: TComponent; PCulturaController: TCulturaController);
+begin
+  inherited Create(POwner);
+  FCulturaController := PCulturaController;
+end;
+
+destructor TFrmRelatorioCultura.Destroy;
+begin
+  FCulturaController.Free;
+  inherited;
+end;
+
+end.

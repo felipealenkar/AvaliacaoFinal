@@ -1,0 +1,51 @@
+unit Model.Manejo;
+
+interface
+
+uses
+  System.SysUtils;
+
+type
+  TManejo = class
+  private
+    FIdManejo: Integer;
+    FDescricao: string;
+    FIdTipoManejo: Integer;
+    FIdCultura: Integer;
+    FDataManejo: TDateTime;
+    FQuantidade: Double;
+    FUnidade: string;
+    FObs: string;
+
+    procedure SetTipoManejo(PIdTipoManejo: Integer);
+  public
+    constructor Create;
+
+    property IdManejo: Integer read FIdManejo write FIdManejo;
+    property Descricao: string read FDescricao write FDescricao;
+    property IdTipoManejo: Integer read FIdTipoManejo write SetTipoManejo;
+    property IdCultura: Integer read FIdCultura write FIdCultura;
+    property DataManejo: TDateTime read FDataManejo write FDataManejo;
+    property Quantidade: string read FQuantidade write FQuantidade;
+    property Observacao: string read FObservacao write FObservacao;
+  end;
+
+implementation
+
+{ TManejo }
+
+constructor TManejo.Create;
+begin
+  inherited;
+  FDataManejo := Date;
+end;
+
+procedure TManejo.SetTipoManejo(PIdTipoManejo: Integer);
+begin
+  if PIdTipoManejo < 0 then
+    raise Exception.Create('Tipo de manejo não pode estar vazio');
+
+  FIdTipoManejo := PIdTipoManejo;
+end;
+
+end.

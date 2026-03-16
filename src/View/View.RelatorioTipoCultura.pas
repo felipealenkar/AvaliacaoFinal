@@ -59,7 +59,7 @@ begin
   try
     try
       LDFMTableTipoCultura := TFDMemTable.Create(nil);
-      LDFMTableTipoCultura.FieldDefs.Add('id_tipocultura', ftInteger, 0, True);
+      LDFMTableTipoCultura.FieldDefs.Add('id_tipocultura', ftInteger);
       LDFMTableTipoCultura.FieldDefs.Add('descricao', ftString, 50, True);
       LDFMTableTipoCultura.CreateDataSet;
 

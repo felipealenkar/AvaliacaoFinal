@@ -1,0 +1,43 @@
+unit Model.TipoManejo;
+
+interface
+
+uses
+  System.SysUtils;
+
+type
+  TTipoManejo = class
+  private
+    FIdTipoManejo: Integer;
+    FDescricao: string;
+
+    procedure SetDescricao(const PDescricao: string);
+  public
+    constructor Create;
+    property IdTipoManejo: Integer read FIdTipoManejo write FIdTipoManejo;
+    property Descricao: string read FDescricao write SetDescricao;
+  end;
+
+implementation
+
+{ TTipoManejo }
+
+constructor TTipoManejo.Create;
+begin
+  inherited;
+  FIdTipoManejo := 0;
+  FDescricao := '';
+end;
+
+procedure TTipoManejo.SetDescricao(const PDescricao: string);
+begin
+  if Trim(PDescricao).IsEmpty then
+    raise Exception.Create('Descrição do tipo de cultura não pode estar vazia');
+
+  if Length(PDescricao) > 50 then
+    raise Exception.Create('Descrição do tipo de cultura deve ter no máximo 50 caracteres');
+
+  FDescricao := PDescricao;
+end;
+
+end.

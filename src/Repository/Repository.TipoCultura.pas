@@ -40,10 +40,10 @@ begin
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('SELECT id_tipocultura, descricao '
-                         + 'FROM "%s".tipocultura '
-                         + 'WHERE id_tipocultura = :PId_TipoCultura', [TDBStart.NomeSchema]);
+                         + 'FROM %s.tipocultura '
+                         + 'WHERE id_tipocultura = :PIdTipoCultura', [TDBStart.NomeSchema]);
 
-      LQuery.ParamByName('PId_TipoCultura').AsInteger := PIdTipoCultura;
+      LQuery.ParamByName('PIdTipoCultura').AsInteger := PIdTipoCultura;
       LQuery.Open;
 
       if not LQuery.IsEmpty then
@@ -147,11 +147,11 @@ begin
       LQuery.SQL.Text :=
       Format('SELECT id_cultura, nome from ' +
             '%s.cultura ' +
-            'WHERE id_tipocultura = :PId_Cultura ' +
+            'WHERE id_tipocultura = :PIdTipoCultura ' +
             'ORDER BY id_cultura',
         [TDBStart.NomeSchema]);
 
-      LQuery.ParamByName('PId_Cultura').AsInteger := PId_TipoCultura;
+      LQuery.ParamByName('PIdTipoCultura').AsInteger := PId_TipoCultura;
       LQuery.Open;
 
       while not LQuery.Eof do
@@ -190,11 +190,11 @@ begin
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('SELECT id_tipocultura, descricao '
                         + 'FROM %0:s.tipocultura '
-                        + 'WHERE CAST(id_tipocultura AS text) ilike CAST(:PId_TipoCultura AS text) or '
+                        + 'WHERE CAST(id_tipocultura AS text) ilike CAST(:PIdTipoCultura AS text) or '
                         + '%0:s.sem_acento(descricao::text) ilike %0:s.sem_acento(:PDescricao::text)'
                         + 'ORDER BY &POrdenacao',
                         [TDBStart.NomeSchema]);
-      LQuery.ParamByName('PId_TipoCultura').AsString := '%' + PBusca + '%';
+      LQuery.ParamByName('PIdTipoCultura').AsString := '%' + PBusca + '%';
       LQuery.ParamByName('PDescricao').AsString := '%' + PBusca + '%';
       LQuery.MacroByName('POrdenacao').AsRaw := PORdenacao;
       LQuery.Open;
@@ -232,10 +232,10 @@ begin
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('UPDATE %s.tipocultura '
                          + 'SET descricao = :PDescricao '
-                         + 'WHERE id_tipocultura = :PId_TipoCultura', [TDBStart.NomeSchema]);
+                         + 'WHERE id_tipocultura = :PIdTipoCultura', [TDBStart.NomeSchema]);
 
       LQuery.ParamByName('PDescricao').AsString := PTipoCultura.Descricao;
-      LQuery.ParamByName('PId_TipoCultura').AsInteger := PTipoCultura.IdTipoCultura;
+      LQuery.ParamByName('PIdTipoCultura').AsInteger := PTipoCultura.IdTipoCultura;
       LQuery.ExecSQL;
     except
       on E:Exception do
@@ -262,9 +262,9 @@ begin
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('DELETE FROM %s.tipocultura '
-                         + 'WHERE id_tipocultura = :PId_TipoCultura', [TDBStart.NomeSchema]);
+                         + 'WHERE id_tipocultura = :PIdTipoCultura', [TDBStart.NomeSchema]);
 
-      LQuery.ParamByName('PId_TipoCultura').AsInteger := PIdTipoCultura;
+      LQuery.ParamByName('PIdTipoCultura').AsInteger := PIdTipoCultura;
       LQuery.ExecSQL;
     except
       on E:Exception do
@@ -289,9 +289,9 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('SELECT 1 FROM %s.tipocultura ' +
-                                'WHERE UPPER(descricao) = UPPER(:PDescricao) AND id_tipocultura <> :PId_TipoCultura' ,[TDBStart.NomeSchema]);
+                                'WHERE UPPER(descricao) = UPPER(:PDescricao) AND id_tipocultura <> :PIdTipoCultura' ,[TDBStart.NomeSchema]);
       LQuery.ParamByName('PDescricao').AsString := Trim(PDescricao);
-      LQuery.ParamByName('PId_TipoCultura').AsInteger := PIdIgnorar;
+      LQuery.ParamByName('PIdTipoCultura').AsInteger := PIdIgnorar;
       LQuery.Open;
       Result := not LQuery.Eof;
     except
@@ -317,8 +317,8 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('SELECT 1 FROM %s.cultura ' +
-                                'WHERE id_tipocultura = :PId_TipoCultura' ,[TDBStart.NomeSchema]);
-      LQuery.ParamByName('PId_TipoCultura').AsInteger := PIdTipoCultura;
+                                'WHERE id_tipocultura = :PIdTipoCultura' ,[TDBStart.NomeSchema]);
+      LQuery.ParamByName('PIdTipoCultura').AsInteger := PIdTipoCultura;
       LQuery.Open;
       Result := not LQuery.Eof;
     except

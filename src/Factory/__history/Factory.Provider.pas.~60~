@@ -1,0 +1,98 @@
+unit Factory.Provider;
+
+interface
+
+uses
+  System.SysUtils, System.Classes,
+
+  // Views
+  View.EditarCultura, View.Cultura, View.TipoCultura, View.RelatorioTipoCultura, View.RelatorioCultura,
+  View.TipoManejo, View.RelatorioTipoManejo,
+  // Controllers
+  Controller.DbStart, Controller.TipoCultura, Controller.Cultura, Controller.ApiCultura, Controller.TipoManejo,
+  // Services
+  Service.DbStart, Service.TipoCultura, Service.Cultura, Service.ApiCultura, Service.TipoManejo,
+  // Repositories
+  Repository.DbStart, Repository.TipoCultura, Repository.Cultura, Repository.ApiCultura, Repository.TipoManejo;
+
+type
+  TProviderFactory = class
+  private
+  public
+    class function NewDbStartController: TDBStartController;
+    class function NewTipoCulturaController: TTipoCulturaController;
+    class function NewTipoManejoController: TTipoManejoController;
+    class function NewCulturaController: TCulturaController;
+    class function NewCulturaApiController: TCulturaApiController;
+
+    class function NewTipoCulturaView(POwner: TComponent): TFrmTipoCultura;
+    class function NewTipoManejoView(POwner: TComponent): TFrmTipoManejo;
+    class function NewCulturaView(POwner:TComponent):TFrmCultura;
+    class function NewRelatorioTipoCulturaView(POwner: TComponent): TFrmRelatorioTipoCultura;
+    class function NewRelatorioTipoManejoView(POwner: TComponent): TFrmRelatorioTipoCultura;
+    class function NewRelatorioCulturaView(POwner: TComponent): TFrmRelatorioCultura;
+  end;
+
+implementation
+
+{ TProviderFactory }
+
+class function TProviderFactory.NewCulturaApiController: TCulturaApiController;
+begin
+  Result := TCulturaApiController.Create(TCulturaApiService.Create(TCulturaApiRepository.Create));
+end;
+
+class function TProviderFactory.NewCulturaController: TCulturaController;
+begin
+  Result := TCulturaController.Create(TCulturaService.Create(TCulturaRepository.Create));
+end;
+
+class function TProviderFactory.NewCulturaView(POwner: TComponent): TFrmCultura;
+begin
+  Result := TFrmCultura.Create(POwner, NewCulturaController, NewTipoCulturaController);
+end;
+
+class function TProviderFactory.NewDbStartController: TDBStartController;
+begin
+  Result := TDBStartController.Create(TDbStartService.Create(TDbStartRepository.Create));
+end;
+
+class function TProviderFactory.NewRelatorioCulturaView(
+  POwner: TComponent): TFrmRelatorioCultura;
+begin
+  Result := TFrmRelatorioCultura.Create(POwner, NewCulturaController);
+end;
+
+class function TProviderFactory.NewRelatorioTipoCulturaView(
+  POwner: TComponent): TFrmRelatorioTipoCultura;
+begin
+  Result := TFrmRelatorioTipoCultura.Create(POwner, NewTipoCulturaController);
+end;
+
+class function TProviderFactory.NewRelatorioTipoManejoView(
+  POwner: TComponent): TFrmRelatorioTipoCultura;
+begin
+  Result := TFrmRelatorioTipoManejo.Create(POwner, NewTipoManejoController);
+end;
+
+class function TProviderFactory.NewTipoCulturaController: TTipoCulturaController;
+begin
+  Result := TTipoCulturaController.Create(TTipoCulturaService.Create(TTipoCulturaRepository.Create));
+end;
+
+class function TProviderFactory.NewTipoCulturaView(POwner: TComponent): TFrmTipoCultura;
+begin
+  Result := TFrmTipoCultura.Create(POwner, NewTipoCulturaController);
+end;
+
+class function TProviderFactory.NewTipoManejoController: TTipoManejoController;
+begin
+  Result := TTipoManejoController.Create(TTipoManejoService.Create(TTipoManejoRepository.Create));
+end;
+
+class function TProviderFactory.NewTipoManejoView(POwner: TComponent): TFrmTipoManejo;
+begin
+  Result := TFrmTipoManejo.Create(POwner, NewTipoManejoController);
+end;
+
+end.

@@ -3,7 +3,7 @@ unit Controller.TipoCultura;
 interface
 
 uses
-  System.Generics.Collections,
+  System.Generics.Collections, System.SysUtils,
   Model.TipoCultura, Model.Cultura,
   Service.TipoCultura;
 
@@ -40,6 +40,9 @@ procedure TTipoCulturaController.Inserir(PDescricao: string);
 var
   LTipoCultura: TTipoCultura;
 begin
+  if Trim(PDescricao) = '' then
+    raise Exception.Create('Digite a descrição');
+
   LTipoCultura := TTipoCultura.Create;
   try
     LTipoCultura.Descricao := PDescricao;
