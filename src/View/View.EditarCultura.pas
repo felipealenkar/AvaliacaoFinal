@@ -34,6 +34,7 @@ type
     SbtnAbrirImg: TSpeedButton;
     SbtnImgPorApi: TSpeedButton;
     SbtnLimparImg: TSpeedButton;
+    RgChaveGemini: TRadioGroup;
     procedure SbtnSalvarClick(Sender: TObject);
     procedure SbtnSairClick(Sender: TObject);
     procedure SbtnAbrirImgClick(Sender: TObject);
@@ -41,6 +42,8 @@ type
     procedure FormShow(Sender: TObject);
     procedure SbtnImgPorApiClick(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
+    procedure RgChaveGeminiClick(Sender: TObject);
+    procedure EscolherChaveGemini;
   private
     FCulturaController: TCulturaController;
     FTipoCulturaController: TTipoCulturaController;
@@ -156,6 +159,38 @@ begin
   inherited;
 end;
 
+procedure TFrmEditarCultura.EscolherChaveGemini;
+var
+  LChave: String;
+  LResposta: Boolean;
+begin
+  if RgChaveGemini.ItemIndex = 0 then
+  begin
+    FCulturaApiController.AtualizarChaveGemini('AIzaSyDPdAyuuvTwzMgghmZFoYvYv0jSbhEZBbk');
+    MessageBox(0, PChar('A chave padrão foi definida'),
+                        'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+  end
+  else
+  begin
+    repeat
+    LResposta := InputQuery('Digite a chave:', 'Chave Gemini', LChave);
+    if LResposta then
+    try
+      if Trim(LChave) <> '' then
+      begin
+        FCulturaApiController.AtualizarChaveGemini(LChave);
+        MessageBox(0, PChar('A chave personalizada foi definida'),
+                        'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+        Exit;
+      end;
+    except
+      on E: Exception do
+        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    end;
+  until not LResposta;
+  end;
+end;
+
 procedure TFrmEditarCultura.FormShow(Sender: TObject);
 begin
   RgAPIs.ItemIndex := 0;
@@ -170,6 +205,11 @@ begin
   CbbTipoCultura.ItemIndex := -1;
   ChkAtiva.Checked := True;
   DtpDataPlantio.DateTime := Now;
+end;
+
+procedure TFrmEditarCultura.RgChaveGeminiClick(Sender: TObject);
+begin
+  EscolherChaveGemini;
 end;
 
 procedure TFrmEditarCultura.Salvar;
@@ -251,7 +291,8 @@ end;
 procedure TFrmEditarCultura.SpeedButton1Click(Sender: TObject);
 begin
   MessageBox(0, PChar('!!!Ao clicar no botão "Buscar na web" o sistema consultará na web para obter a imagem.' + sLineBreak +
-                     'A consulta é inteligente e na maioria das vezes vai funcionar mesmo com erros de português.'),
+                     'A consulta é inteligente e na maioria das vezes vai funcionar mesmo com erros de português.' + sLineBreak + sLineBreak +
+                     'A chave do Gemini é minha, porém se bloquear pode se utilizar qualquer chave, basta marcar a opção "Usar minha chave Gemini".'),
                         'Ajuda', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
 end;
 

@@ -3,34 +3,41 @@ unit Repository.ApiCultura;
 interface
 
 uses
+  Repository.Base, Model.DbStart,
   REST.Client, REST.Types, System.JSON, System.Net.HttpClient, System.Net.HttpClientComponent,
-  System.Classes, System.SysUtils, System.Generics.Collections;
+  System.Classes, System.SysUtils, System.Generics.Collections,
+
+  Data.Db, FireDAC.Phys.PG, FireDAC.Comp.Client, FireDAC.Stan.Param,
+  FireDAC.Stan.Def, FireDAC.DApt, FireDAC.VCLUI.Wait, FireDAC.Stan.Async, FireDAC.Comp.UI;
 
 type
-  TCulturaApiRepository = class
-  private
+  TCulturaApiRepository = class(TBaseRepository)
+    private
     public
-    class function ObterNomeCientifico(PNomePT: string): string; static;
-    class function ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String; static;
-    class function ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): String; static;
-    class function ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream; static;
+      class function ObterNomeCientifico(PNomePT, PChaveGemini: string): string; static;
+      class function ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String; static;
+      class function ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): String; static;
+      class function ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream; static;
+      procedure AtualizarChaveGemini(PChave: string);
+      function ObterChaveGemini: String;
+
+
   end;
 
 implementation
 
 { TApiCulturaRepository }
 
-class function TCulturaApiRepository.ObterNomeCientifico(PNomePT: string): string;
+class function TCulturaApiRepository.ObterNomeCientifico(PNomePT, PChaveGemini: string): string;
 var
   LClient: TRESTClient;
   LRequest: TRESTRequest;
   LResponse: TRESTResponse;
   JSONObj: TJSONObject;
   LValue: TJSONValue;
-
-const URLBASE_GEMINI: string = 'https://generativelanguage.googleapis.com/v1beta';
-const KEY_GEMINI: String = 'AIzaSyDPdAyuuvTwzMgghmZFoYvYv0jSbhEZBbk';
 begin
+  var URLBASE_GEMINI: string := 'https://generativelanguage.googleapis.com/v1beta';
+  var KEY_GEMINI: String := PChaveGemini;
   Result := '';
   LClient := TRESTClient.Create(nil);
   LRequest := TRESTRequest.Create(nil);
@@ -211,6 +218,57 @@ begin
     LResponse.Free;
     LRequest.Free;
     LClient.Free;
+  end;
+end;
+
+procedure TCulturaApiRepository.AtualizarChaveGemini(PChave: string);
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+        Format('UPDATE %s.apicultura set chave_gemini = :PChave where id_gemini = 1', [TDBStart.NomeSchema]);
+
+      LQuery.ParamByName('PChave').AsString := PChave;
+      LQuery.ExecSQL;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao inserir dados na tabela %s.cultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TCulturaApiRepository.ObterChaveGemini: string;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  LQuery := nil;
+  LConnection := nil;
+  try
+    LConnection := CriarConexao(TDBStart.NomeDatabase);
+    LQuery := TFDQuery.Create(nil);
+    LQuery.Connection := LConnection;
+    LQuery.SQL.Text :=
+    Format(('SELECT chave_gemini from %s.apicultura where id_gemini = 1'), [TDBStart.NomeSchema]);
+    LQuery.Open;
+
+    if not LQuery.Eof then
+      Result := LQuery.FieldByName('chave_gemini').AsString;
+  finally
+    LQuery.Free;
+    LConnection.Free;
   end;
 end;
 

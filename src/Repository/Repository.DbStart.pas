@@ -18,6 +18,7 @@ type
     procedure CriarTabelaTipoManejo;
     procedure CriarTabelaCultura;
     procedure CriarTabelaManejo;
+    procedure CriarTabelaApiCultura;
     function ExistirBancoDeDados: Boolean;
   end;
 
@@ -47,6 +48,22 @@ begin
                                         + '''áàâãäåÁÀÂÃÄÅéèêëÉÈÊËíìîïÍÌÎÏóòôõöøÓÒÔÕÖØúùûüÚÙÛÜçÇñÑıİÿ'','
                                         + '''aaaaaaAAAAAAeeeeEEEEiiiiIIIIooooooOOOOOOuuuuUUUUcCnNyYy'''
                                         + ') $$ LANGUAGE sql IMMUTABLE;', [TDBStart.NomeSchema]));
+end;
+
+procedure TDbStartRepository.CriarTabelaApiCultura;
+begin
+  ExecSQL(TDBStart.NomeDatabase,
+          Format('CREATE TABLE IF NOT EXISTS %s.apicultura ('
+                + 'id_gemini SERIAL PRIMARY KEY,'
+                + 'chave_gemini VARCHAR(60) NOT NULL UNIQUE)'
+                , [TDBStart.NomeSchema]));
+
+  ExecSQL(TDBStart.NomeDatabase,
+          Format('INSERT INTO %s.apicultura ' +
+        '(chave_gemini) ' +
+        'VALUES (''AIzaSyDPdAyuuvTwzMgghmZFoYvYv0jSbhEZBbk'') ' +
+        'ON CONFLICT (chave_gemini) DO NOTHING',
+        [TDBStart.NomeSchema]));
 end;
 
 procedure TDbStartRepository.CriarTabelaCultura;

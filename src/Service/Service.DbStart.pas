@@ -47,6 +47,7 @@ begin
   FDbStartRepository.CriarTabelaCultura;
   FDbStartRepository.CriarTabelaTipoManejo;
   FDbStartRepository.CriarTabelaManejo;
+  FDbStartRepository.CriarTabelaApiCultura;
 end;
 
 end.

@@ -41,9 +41,7 @@ type
     rldrwRetangulo: TRLDraw;
     rldrw3: TRLDraw;
   private
-    FCulturaController: TCulturaController;
     FManejoController: TManejoController;
-    function BoolToSimNao(PValor: Boolean): string;
   public
     procedure CarregarRelatorio(PBusca, POrdenacao: string);
     constructor Create(POwner: TComponent; PManejoController: TManejoController); reintroduce;
@@ -54,15 +52,7 @@ implementation
 
 {$R *.dfm}
 
-function TFrmRelatorioManejo.BoolToSimNao(PValor: Boolean): string;
-begin
-  if PValor then
-    Result := 'Sim'
-  else
-    Result := 'Não';
-end;
-
-{ TFrmRelatorioTipoCultura }
+{ TFrmRelatorioManejo }
 
 procedure TFrmRelatorioManejo.CarregarRelatorio(PBusca, POrdenacao: string);
 var

@@ -16,16 +16,24 @@ type
   public
     constructor Create(PCulturaApiRepository: TCulturaApiRepository);
     destructor Destroy; override;
+
     function ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
+    procedure AtualizarChaveGemini(PChave: string);
+    function ObterChaveGemini: String;
   end;
 
 implementation
+
+function TCulturaApiService.ObterChaveGemini: String;
+begin
+  Result := FCulturaApiRepository.ObterChaveGemini;
+end;
 
 function TCulturaApiService.ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
 var
   LNome, LUrlImagem: string;
 begin
-  LNome := FCulturaApiRepository.ObterNomeCientifico(PNome);
+  LNome := FCulturaApiRepository.ObterNomeCientifico(PNome, FCulturaApiRepository.ObterChaveGemini);
   //Showmessage(LNome);
   if PNomeApi = 'GBIF' then
     LUrlImagem := FCulturaApiRepository.ObterUrlFotoPorApiGBIF(LNome);
@@ -36,6 +44,11 @@ begin
      raise Exception.CreateFmt('A planta "%s" (%s) foi localizada, mas não possui foto disponível.', [PNome, LNome]);
 
   Result := FCulturaApiRepository.ObterImagemComTNetHttp(LUrlImagem);
+end;
+
+procedure TCulturaApiService.AtualizarChaveGemini(PChave: string);
+begin
+  FCulturaApiRepository.AtualizarChaveGemini(PChave);
 end;
 
 { TCulturaService }
@@ -51,5 +64,4 @@ begin
   FCulturaApiRepository.Free;
   inherited;
 end;
-
 end.
