@@ -115,7 +115,8 @@ begin
   ExecSQL(TDBStart.NomeDatabase,
           Format('CREATE TABLE IF NOT EXISTS %s.tipomanejo'
                 + '(id_tipomanejo SERIAL PRIMARY KEY,'
-                + 'descricao VARCHAR(50) NOT NULL UNIQUE)', [TDBStart.NomeSchema]));
+                + 'descricao VARCHAR(50) NOT NULL UNIQUE, '
+                + 'utiliza_unidade BOOLEAN DEFAULT FALSE)', [TDBStart.NomeSchema]));
 end;
 
 function TDbStartRepository.ExistirBancoDeDados: Boolean;

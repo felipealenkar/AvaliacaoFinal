@@ -140,7 +140,8 @@ begin
   StrGrdTipoCultura.Cells[0,0] := 'Id';
   StrGrdTipoCultura.Cells[1,0] := 'Descrição';
   StrGrdTipoCultura.ColWidths[0] := 50;
-  StrGrdTipoCultura.ColWidths[1] := 350;
+  StrGrdTipoCultura.ColWidths[1] := 120;
+  StrGrdTipoCultura.ColWidths[1] := 200;
 
   // Grid de Culturas Vinculadas
   StrGrdCulturasVinculadas.ColCount := 3;

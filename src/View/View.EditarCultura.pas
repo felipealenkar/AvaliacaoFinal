@@ -8,7 +8,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
   Vcl.Buttons, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList,
-  Vcl.VirtualImage, Vcl.ExtDlgs, Vcl.Imaging.pngimage;
+  Vcl.VirtualImage, Vcl.ExtDlgs, Vcl.Imaging.pngimage, Vcl.WinXCtrls;
 
 type
   TFrmEditarCultura = class(TForm)
@@ -35,6 +35,7 @@ type
     SbtnLimparImg: TSpeedButton;
     SbtnTrocarchaveGemini: TSpeedButton;
     RgAPIs: TRadioGroup;
+    ActIndFoto: TActivityIndicator;
     procedure SbtnSalvarClick(Sender: TObject);
     procedure SbtnSairClick(Sender: TObject);
     procedure SbtnAbrirImgClick(Sender: TObject);
@@ -44,6 +45,7 @@ type
     procedure SpeedButton1Click(Sender: TObject);
     procedure EscolherChaveGemini;
     procedure SbtnTrocarchaveGeminiClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     FCulturaController: TCulturaController;
     FTipoCulturaController: TTipoCulturaController;
@@ -188,6 +190,12 @@ begin
   end;
 end;
 
+procedure TFrmEditarCultura.FormCreate(Sender: TObject);
+begin
+  ActIndFoto.Enabled := False;
+  ActIndFoto.Visible := False;
+end;
+
 procedure TFrmEditarCultura.FormShow(Sender: TObject);
 begin
   RgAPIs.ItemIndex := 0;
@@ -247,22 +255,39 @@ begin
 end;
 
 procedure TFrmEditarCultura.SbtnImgPorApiClick(Sender: TObject);
-var
-  LImgCultura: TMemoryStream;
 begin
-  if Trim(EdtDescricao.Text) = '' then
-  begin
-    MessageBox(0, PChar('!!!Digite o nome da planta!!!.'),
-                        'Buscar na web', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
-    Exit;
-  end;
+  ActIndFoto.Visible := True;
+  ActIndFoto.Animate := True;
 
-  LImgCultura := FCulturaApiController.ObterUrlFotoPorApi(EdtDescricao.Text, RgAPIs.Items.Strings[RgAPIs.ItemIndex]);
-  try
-    CarregarImagemPorMemoryStream(LImgCultura);
-  finally
-    LImgCultura.Free;
-  end;
+    TThread.CreateAnonymousThread(
+  procedure
+  begin
+    var LImgCultura: TMemoryStream;
+    var LDescricao: string;
+
+    LDescricao := EdtDescricao.Text;
+
+    if Trim(LDescricao) = '' then
+    begin
+      MessageBox(0, PChar('!!!Digite o nome da planta!!!.'),
+                          'Buscar na web', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+      Exit;
+    end;
+
+    LImgCultura := FCulturaApiController.ObterUrlFotoPorApi(LDescricao, RgAPIs.Items.Strings[RgAPIs.ItemIndex]);
+    TThread.Synchronize(TThread.Current,
+    procedure
+    begin
+      try
+        CarregarImagemPorMemoryStream(LImgCultura);
+      finally
+        LImgCultura.Free;
+      end;
+
+      ActIndFoto.Animate := False;
+      ActIndFoto.Visible := False;
+    end);
+  end).Start;
 end;
 
 procedure TFrmEditarCultura.SbtnLimparImgClick(Sender: TObject);

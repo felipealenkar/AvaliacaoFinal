@@ -10,12 +10,14 @@ type
   private
     FIdTipoManejo: Integer;
     FDescricao: string;
+    FUtilizaUnidade: Boolean;
 
     procedure SetDescricao(const PDescricao: string);
   public
     constructor Create;
     property IdTipoManejo: Integer read FIdTipoManejo write FIdTipoManejo;
     property Descricao: string read FDescricao write SetDescricao;
+    property UtilizaUnidade: Boolean read FUtilizaUnidade write FUtilizaUnidade;
   end;
 
 implementation

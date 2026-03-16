@@ -39,8 +39,7 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
-      LQuery.SQL.Text := Format('SELECT id_tipocultura, descricao '
-                         + 'FROM %s.tipocultura '
+      LQuery.SQL.Text := Format('SELECT * FROM %s.tipocultura '
                          + 'WHERE id_tipocultura = :PIdTipoCultura', [TDBStart.NomeSchema]);
 
       LQuery.ParamByName('PIdTipoCultura').AsInteger := PIdTipoCultura;
@@ -105,8 +104,7 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
-      LQuery.SQL.Text := Format('SELECT id_tipocultura, descricao '
-                        + 'FROM %s.tipocultura '
+      LQuery.SQL.Text := Format('SELECT * FROM %s.tipocultura '
                         + 'ORDER BY &POrdenacao', [TDBStart.NomeSchema]);
       LQuery.MacroByName('POrdenacao').AsRaw := POrdenacao;
       LQuery.Open;
@@ -188,8 +186,7 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
-      LQuery.SQL.Text := Format('SELECT id_tipocultura, descricao '
-                        + 'FROM %0:s.tipocultura '
+      LQuery.SQL.Text := Format('SELECT * FROM %0:s.tipocultura '
                         + 'WHERE CAST(id_tipocultura AS text) ilike CAST(:PIdTipoCultura AS text) or '
                         + '%0:s.sem_acento(descricao::text) ilike %0:s.sem_acento(:PDescricao::text)'
                         + 'ORDER BY &POrdenacao',

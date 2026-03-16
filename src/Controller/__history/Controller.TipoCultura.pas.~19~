@@ -1,0 +1,91 @@
+unit Controller.TipoCultura;
+
+interface
+
+uses
+  System.Generics.Collections, System.SysUtils,
+  Model.TipoCultura, Model.Cultura,
+  Service.TipoCultura;
+
+type
+  TTipoCulturaController = class
+  private
+    FTipoCulturaService: TTipoCulturaService;
+  public
+    constructor Create(PTipoCulturaService: TTipoCulturaService);
+    destructor Destroy; override;
+    procedure Inserir(PDescricao: string; PUnidade: Boolean);
+    procedure Atualizar(PId: Integer; PDescricao: string);
+    procedure Excluir(PId: Integer);
+    function Listar(POrdenacao: string): TObjectList<TTipoCultura>;
+    function ListarCulturasVinculadas(PId_TipoCultura: Integer): TObjectList<TCultura>;
+    function Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoCultura>;
+  end;
+
+implementation
+
+constructor TTipoCulturaController.Create(PTipoCulturaService: TTipoCulturaService);
+begin
+  inherited Create;
+  FTipoCulturaService := PTipoCulturaService;
+end;
+
+destructor TTipoCulturaController.Destroy;
+begin
+  FTipoCulturaService.Free;
+  inherited;
+end;
+
+procedure TTipoCulturaController.Inserir(PDescricao: string; PUnidade: Boolean);
+var
+  LTipoCultura: TTipoCultura;
+begin
+  if Trim(PDescricao) = '' then
+    raise Exception.Create('Digite a descrição');
+
+  LTipoCultura := TTipoCultura.Create;
+  try
+    LTipoCultura.Descricao := PDescricao;
+    LTipo
+    FTipoCulturaService.Inserir(LTipoCultura);
+  finally
+    LTipoCultura.Free;
+  end;
+end;
+
+procedure TTipoCulturaController.Atualizar(PId: Integer; PDescricao: string);
+var
+  LTipoCultura: TTipoCultura;
+begin
+  LTipoCultura := TTipoCultura.Create;
+  try
+    LTipoCultura.IdTipoCultura := PId;
+    LTipoCultura.Descricao := PDescricao;
+
+    FTipoCulturaService.Atualizar(LTipoCultura);
+  finally
+    LTipoCultura.Free;
+  end;
+end;
+
+procedure TTipoCulturaController.Excluir(PId: Integer);
+begin
+  FTipoCulturaService.Excluir(PId);
+end;
+
+function TTipoCulturaController.Listar(POrdenacao: string): TObjectList<TTipoCultura>;
+begin
+  Result := FTipoCulturaService.Listar(POrdenacao);
+end;
+
+function TTipoCulturaController.ListarCulturasVinculadas(PId_TipoCultura: Integer): TObjectList<TCultura>;
+begin
+  Result := FTipoCulturaService.ListarCulturasVinculadas(PId_TipoCultura);
+end;
+
+function TTipoCulturaController.Pesquisar(PBusca, POrdenacao: string): TObjectList<TTipoCultura>;
+begin
+  Result := FTipoCulturaService.Pesquisar(PBusca, POrdenacao);
+end;
+
+end.
