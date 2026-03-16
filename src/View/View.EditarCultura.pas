@@ -27,14 +27,14 @@ type
     DlgOpenPicImg: TOpenPictureDialog;
     VimgLCulturaMenor: TVirtualImageList;
     ImgFoto: TImage;
-    RgAPIs: TRadioGroup;
     SpeedButton1: TSpeedButton;
     SbtnSalvar: TSpeedButton;
     SbtnSair: TSpeedButton;
     SbtnAbrirImg: TSpeedButton;
     SbtnImgPorApi: TSpeedButton;
     SbtnLimparImg: TSpeedButton;
-    RgChaveGemini: TRadioGroup;
+    SbtnTrocarchaveGemini: TSpeedButton;
+    RgAPIs: TRadioGroup;
     procedure SbtnSalvarClick(Sender: TObject);
     procedure SbtnSairClick(Sender: TObject);
     procedure SbtnAbrirImgClick(Sender: TObject);
@@ -42,8 +42,8 @@ type
     procedure FormShow(Sender: TObject);
     procedure SbtnImgPorApiClick(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
-    procedure RgChaveGeminiClick(Sender: TObject);
     procedure EscolherChaveGemini;
+    procedure SbtnTrocarchaveGeminiClick(Sender: TObject);
   private
     FCulturaController: TCulturaController;
     FTipoCulturaController: TTipoCulturaController;
@@ -164,13 +164,6 @@ var
   LChave: String;
   LResposta: Boolean;
 begin
-  if RgChaveGemini.ItemIndex = 0 then
-  begin
-    FCulturaApiController.AtualizarChaveGemini('AIzaSyDPdAyuuvTwzMgghmZFoYvYv0jSbhEZBbk');
-    MessageBox(0, PChar('A chave padrão foi definida'),
-                        'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
-  end
-  else
   begin
     repeat
     LResposta := InputQuery('Digite a chave:', 'Chave Gemini', LChave);
@@ -178,7 +171,7 @@ begin
     try
       if Trim(LChave) <> '' then
       begin
-        FCulturaApiController.AtualizarChaveGemini(LChave);
+        FCulturaApiController.AtualizarChaveGemini(LChave, True);
         MessageBox(0, PChar('A chave personalizada foi definida'),
                         'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
         Exit;
@@ -188,6 +181,10 @@ begin
         MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
     end;
   until not LResposta;
+
+  FCulturaApiController.AtualizarChaveGemini('AIzaSyDPdAyuuvTwzMgghmZFoYvYv0jSbhEZBbk', False);
+  MessageBox(0, PChar('A chave padrão foi definida'),
+                      'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
   end;
 end;
 
@@ -205,11 +202,6 @@ begin
   CbbTipoCultura.ItemIndex := -1;
   ChkAtiva.Checked := True;
   DtpDataPlantio.DateTime := Now;
-end;
-
-procedure TFrmEditarCultura.RgChaveGeminiClick(Sender: TObject);
-begin
-  EscolherChaveGemini;
 end;
 
 procedure TFrmEditarCultura.Salvar;
@@ -288,6 +280,11 @@ begin
   Salvar;
 end;
 
+procedure TFrmEditarCultura.SbtnTrocarchaveGeminiClick(Sender: TObject);
+begin
+  EscolherChaveGemini;
+end;
+
 procedure TFrmEditarCultura.SpeedButton1Click(Sender: TObject);
 begin
   MessageBox(0, PChar('!!!Ao clicar no botão "Buscar na web" o sistema consultará na web para obter a imagem.' + sLineBreak +
@@ -295,5 +292,4 @@ begin
                      'A chave do Gemini é minha, porém se bloquear pode se utilizar qualquer chave, basta marcar a opção "Usar minha chave Gemini".'),
                         'Ajuda', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
 end;
-
 end.

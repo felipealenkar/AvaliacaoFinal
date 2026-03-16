@@ -218,7 +218,7 @@ begin
       MessageBox(0, PChar('Digite a descrição.'), 'Inserir', MB_OK or MB_ICONWARNING or MB_TASKMODAL);
     except
       on E: Exception do
-        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONERROR or MB_TASKMODAL);
     end;
   until not LResposta;
 end;
@@ -263,10 +263,10 @@ begin
         CarregarGridTipoManejo(CListar);
         Exit;
       end;
-      MessageBox(0, PChar('Digite a descrição.'), 'Inserir', MB_OK or MB_ICONWARNING or MB_TASKMODAL);
+      MessageBox(0, PChar('Digite a descrição.'), 'Inserir', MB_OK or MB_ICONERROR or MB_TASKMODAL);
     except
       on E: Exception do
-        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONERROR or MB_TASKMODAL);
     end;
   until not LResposta;
 end;

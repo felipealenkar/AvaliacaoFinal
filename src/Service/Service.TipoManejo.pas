@@ -60,7 +60,7 @@ end;
 procedure TTipoManejoService.Excluir(PIdTipoManejo: Integer);
 begin
   if FTipoManejoRepository.ExisteNaTabelaManejo(PIdTipoManejo) then
-    raise Exception.Create('Não é possível excluir tipos de manejo que estiverem sendo usados em manejos');
+    raise Exception.Create('Não é possível excluir o tipo de manejo, ele está sendo usado em algum manejo');
 
   FTipoManejoRepository.Excluir(PIdTipoManejo);
 end;

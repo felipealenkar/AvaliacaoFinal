@@ -14,13 +14,14 @@ type
   TCulturaApiRepository = class(TBaseRepository)
     private
     public
-      class function ObterNomeCientifico(PNomePT, PChaveGemini: string): string; static;
-      class function ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String; static;
-      class function ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): String; static;
-      class function ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream; static;
-      procedure AtualizarChaveGemini(PChave: string);
+      function ObterRespostaDoGemini(PPrompt: string): string;
+      function ObterNomeCientifico(PNomePT, PChaveGemini: string): string;
+      function ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String;
+      function ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): String;
+      function ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream;
+      procedure AtualizarChaveGemini(PChave: string; PTipo: Boolean);
       function ObterChaveGemini: String;
-
+      function VerificarTipoChave: Boolean;
 
   end;
 
@@ -28,7 +29,7 @@ implementation
 
 { TApiCulturaRepository }
 
-class function TCulturaApiRepository.ObterNomeCientifico(PNomePT, PChaveGemini: string): string;
+function TCulturaApiRepository.ObterNomeCientifico(PNomePT, PChaveGemini: string): string;
 var
   LClient: TRESTClient;
   LRequest: TRESTRequest;
@@ -106,7 +107,82 @@ begin
   end;
 end;
 
-class function TCulturaApiRepository.ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String;
+function TCulturaApiRepository.ObterRespostaDoGemini(PPrompt: String): string;
+var
+  LClient: TRESTClient;
+  LRequest: TRESTRequest;
+  LResponse: TRESTResponse;
+  JSONObj: TJSONObject;
+  LValue: TJSONValue;
+begin
+  var URLBASE_GEMINI: string := 'https://generativelanguage.googleapis.com/v1beta';
+  var KEY_GEMINI: String := ObterChaveGemini;
+  Result := '';
+  LClient := TRESTClient.Create(nil);
+  LRequest := TRESTRequest.Create(nil);
+  LResponse := TRESTResponse.Create(nil);
+  try
+    LClient.BaseURL := URLBASE_GEMINI;
+    LRequest.Client := LClient;
+    LRequest.Response := LResponse;
+    LRequest.Method := rmPOST;
+    LRequest.Resource := 'models/gemini-3.1-flash-lite-preview:generateContent';
+    LRequest.Timeout := 10000;
+
+    LRequest.AddParameter('key', KEY_GEMINI, pkQUERY);
+    LRequest.AddBody(
+      '{' +
+      '  "contents": [' +
+      '    {' +
+      '      "parts": [' +
+      '        {' +
+      '          "text": "' + PPrompt + '"' +
+      '        }' +
+      '      ]' +
+      '    }' +
+      '  ]' +
+      '}',
+      ctAPPLICATION_JSON
+    );
+
+    try
+      LRequest.Execute;
+    except
+      on E: Exception do
+        raise Exception.Create('Falha de conexão com a IA: ' + E.Message);
+    end;
+
+    if LResponse.StatusCode <> 200 then
+      raise Exception.CreateFmt('Erro na API Gemini (%d): %s', [LResponse.StatusCode, LResponse.Content]);
+
+    LValue := TJSONObject.ParseJSONValue(LResponse.Content);
+    if Assigned(LValue) and (LValue is TJSONObject) then
+    begin
+      JSONObj := TJSONObject(LValue);
+      try
+        try
+          Result := JSONObj.GetValue<TJSONArray>('candidates')
+                           .Items[0].GetValue<TJSONObject>('content')
+                           .GetValue<TJSONArray>('parts')
+                           .Items[0].GetValue<string>('text').Trim;
+
+          // Limpeza extra: o Gemini as vezes coloca caracteres de controle ou aspas
+          Result := Result.Replace('"', '').Replace('*', '');
+        except
+          raise Exception.Create('A IA retornou um formato inesperado.');
+        end;
+      finally
+        JSONObj.Free;
+      end;
+    end;
+  finally
+    LResponse.Free;
+    LRequest.Free;
+    LClient.Free;
+  end;
+end;
+
+function TCulturaApiRepository.ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String;
 var
   LClient: TRESTClient;
   LRequest: TRESTRequest;
@@ -157,7 +233,31 @@ begin
   end;
 end;
 
-class function TCulturaApiRepository.ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): string;
+function TCulturaApiRepository.VerificarTipoChave: Boolean;
+var
+  LQuery: TFDQuery;
+  LConnection: TFDConnection;
+begin
+  Result := False;
+  LQuery := nil;
+  LConnection := nil;
+  try
+    LConnection := CriarConexao(TDBStart.NomeDatabase);
+    LQuery := TFDQuery.Create(nil);
+    LQuery.Connection := LConnection;
+    LQuery.SQL.Text :=
+    Format(('SELECT chave_personalizada from %s.apicultura where id_gemini = 1'), [TDBStart.NomeSchema]);
+    LQuery.Open;
+
+    if not LQuery.Eof then
+      Result := LQuery.FieldByName('chave_personalizada').AsBoolean;
+  finally
+    LQuery.Free;
+    LConnection.Free;
+  end;
+end;
+
+function TCulturaApiRepository.ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): string;
 var
   LClient: TRESTClient;
   LRequest: TRESTRequest;
@@ -221,7 +321,7 @@ begin
   end;
 end;
 
-procedure TCulturaApiRepository.AtualizarChaveGemini(PChave: string);
+procedure TCulturaApiRepository.AtualizarChaveGemini(PChave: string; PTipo: Boolean);
 var
   LQuery: TFDQuery;
   LConnection: TFDConnection;
@@ -233,10 +333,14 @@ begin
       LConnection := CriarConexao(TDBStart.NomeDatabase);
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
-      LQuery.SQL.Text :=
-        Format('UPDATE %s.apicultura set chave_gemini = :PChave where id_gemini = 1', [TDBStart.NomeSchema]);
+      LQuery.SQL.Text := Format('UPDATE %s.apicultura ' +
+                              'SET chave_gemini = :PChave, ' +
+                              '    chave_personalizada = :PTipo ' +
+                              'WHERE id_gemini = 1', [TDBStart.NomeSchema]);
 
-      LQuery.ParamByName('PChave').AsString := PChave;
+                            LQuery.ParamByName('PChave').AsString := PChave;
+                            LQuery.ParamByName('PTipo').AsBoolean := PTipo;
+                            LQuery.ExecSQL;
       LQuery.ExecSQL;
     except
       on E:Exception do
@@ -272,7 +376,7 @@ begin
   end;
 end;
 
-class function TCulturaApiRepository.ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream;
+function TCulturaApiRepository.ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream;
 var
   LHttpClient: TNetHTTPClient;
   LIHTTPResp: IHTTPResponse;

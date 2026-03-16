@@ -18,8 +18,10 @@ type
     destructor Destroy; override;
 
     function ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
-    procedure AtualizarChaveGemini(PChave: string);
+    procedure AtualizarChaveGemini(PChave: string; PTipo: Boolean);
     function ObterChaveGemini: String;
+    function ObterCuriosidade: string;
+    function VerificarTipoChave: Boolean;
   end;
 
 implementation
@@ -27,6 +29,27 @@ implementation
 function TCulturaApiService.ObterChaveGemini: String;
 begin
   Result := FCulturaApiRepository.ObterChaveGemini;
+end;
+
+function TCulturaApiService.ObterCuriosidade: string;
+var
+  LPrompt: string;
+begin
+  LPrompt := 'Aja como um bot botânico especializado. Forneça uma curiosidade única, ' +
+             'curta e impactante sobre uma planta (escolha entre: horta, pomar, medicinal ' + 'ou decorativa).' +
+             ' ' +
+             'REGRAS ESTRITAS DE FORMATO: ' +
+             '1. Responda APENAS o texto da curiosidade. ' +
+             '2. Proibido usar saudações (ex: -Olá-, -Aqui está-). ' +
+             '3. Proibido usar aspas no início ou fim. ' +
+             '4. Proibido usar introduções ou explicações (ex: -Você sabia que...-). ' +
+             '5. O texto deve ter no máximo 200 caracteres para caber na tela. ' +
+             ' ' +
+             'Exemplo de saída esperada: A hortelã-pimenta pode ajudar a repelir formigas e ' +
+             'outros insetos devido ao seu forte aroma de mentol. ' +
+             'Não use markdown, não use negrito, apenas o texto puro.';
+
+  Result := FCulturaApiRepository.ObterRespostaDoGemini(LPrompt);
 end;
 
 function TCulturaApiService.ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
@@ -46,9 +69,14 @@ begin
   Result := FCulturaApiRepository.ObterImagemComTNetHttp(LUrlImagem);
 end;
 
-procedure TCulturaApiService.AtualizarChaveGemini(PChave: string);
+function TCulturaApiService.VerificarTipoChave: Boolean;
 begin
-  FCulturaApiRepository.AtualizarChaveGemini(PChave);
+  Result := FCulturaApiRepository.VerificarTipoChave;
+end;
+
+procedure TCulturaApiService.AtualizarChaveGemini(PChave: string; PTipo: Boolean);
+begin
+  FCulturaApiRepository.AtualizarChaveGemini(PChave, PTipo);
 end;
 
 { TCulturaService }

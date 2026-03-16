@@ -50,7 +50,7 @@ end;
 procedure TTipoCulturaService.Excluir(PIdTipoCultura: Integer);
 begin
   if FTipoCulturaRepository.ExisteNaTabelaCultura(PIdTipoCultura) then
-    raise Exception.Create('Não é possível excluir tipos de cultura que estiverem sendo usados em culturas');
+    raise Exception.Create('Não é possível excluir o tipo de cultura, ele está sendo usado em alguma cultura');
 
   FTipoCulturaRepository.Excluir(PIdTipoCultura);
 end;

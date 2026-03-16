@@ -6,7 +6,7 @@
   BorderStyle = bsSingle
   Caption = 'HortiSys - Tela principal'
   ClientHeight = 887
-  ClientWidth = 984
+  ClientWidth = 1080
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -7773,6 +7773,9 @@
     FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFF}
   Position = poScreenCenter
   WindowState = wsMaximized
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
   TextHeight = 15
   object PnlMenuPrincipal: TPanel
     Left = 0
@@ -7784,7 +7787,6 @@
     Color = 14149085
     ParentBackground = False
     TabOrder = 0
-    ExplicitHeight = 753
     object LblDataHora: TLabel
       AlignWithMargins = True
       Left = 4
@@ -7800,7 +7802,6 @@
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
-      ExplicitTop = 724
       ExplicitWidth = 180
     end
     object PnlRelatórios: TPanel
@@ -8020,9 +8021,7 @@
         ParentFont = False
         StyleElements = [seClient, seBorder]
         OnClick = SbtnTipoCulturaClick
-        ExplicitLeft = 0
-        ExplicitTop = 88
-        ExplicitWidth = 251
+        ExplicitLeft = 5
       end
       object LblCadastros: TLabel
         Left = 1
@@ -8076,15 +8075,14 @@
   object PnlPrincipal: TPanel
     Left = 289
     Top = 0
-    Width = 695
+    Width = 791
     Height = 887
     Align = alClient
     TabOrder = 1
-    ExplicitHeight = 753
     object PnlTopo: TPanel
       Left = 1
       Top = 1
-      Width = 693
+      Width = 789
       Height = 85
       Align = alTop
       Color = 14149085
@@ -8092,7 +8090,7 @@
       TabOrder = 0
       object SbtnSair: TSpeedButton
         AlignWithMargins = True
-        Left = 572
+        Left = 668
         Top = 4
         Width = 117
         Height = 75
@@ -8116,7 +8114,7 @@
       end
       object SbtnMinimizar: TSpeedButton
         AlignWithMargins = True
-        Left = 384
+        Left = 480
         Top = 4
         Width = 182
         Height = 75
@@ -8136,21 +8134,49 @@
         ParentFont = False
         StyleElements = [seClient, seBorder]
         OnClick = SbtnMinimizarClick
+        ExplicitLeft = 384
+      end
+      object PnlCuriosidades: TPanel
+        Left = 1
+        Top = 1
+        Width = 476
+        Height = 83
+        Align = alClient
+        BevelOuter = bvNone
+        Color = 14149085
+        ParentBackground = False
+        TabOrder = 0
+        object LblCuriosidades: TLabel
+          AlignWithMargins = True
+          Left = 4
+          Top = 3
+          Width = 15
+          Height = 71
+          Margins.Top = 6
+          Alignment = taCenter
+          Color = 14214623
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -53
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentColor = False
+          ParentFont = False
+        end
       end
     end
     object PnlDesktop: TPanel
       Left = 1
       Top = 86
-      Width = 693
+      Width = 789
       Height = 800
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitHeight = 666
       object VimgLogo: TVirtualImage
         Left = 0
         Top = 0
-        Width = 693
+        Width = 789
         Height = 800
         Align = alClient
         ImageCollection = DmIcons.ImgCltIcons
@@ -8217,5 +8243,11 @@
     Height = 60
     Left = 890
     Top = 689
+  end
+  object TmrCuriosidade: TTimer
+    Interval = 1
+    OnTimer = TmrCuriosidadeTimer
+    Left = 378
+    Top = 25
   end
 end

@@ -19,11 +19,11 @@ type
 
     procedure Inserir(PCultura: TCultura);
     procedure Atualizar(PCultura: TCultura);
-    procedure Excluir(PId: Integer);
+    procedure Excluir(PIdCultura: Integer);
 
     function Listar(POrdenacao: string): TObjectList<TCultura>;
     function Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;
-    function ObterPorId(PId: Integer): TCultura;
+    function ObterPorId(PIdCultura: Integer): TCultura;
   end;
 
 implementation
@@ -45,19 +45,25 @@ end;
 procedure TCulturaService.Inserir(PCultura: TCultura);
 begin
   if FCulturaRepository.ExisteNome(PCultura.Nome, PCultura.IdCultura) then
-    raise Exception.Create('Já existe uma cultura cadastrado com este nome.');
+    raise Exception.Create('Já existe uma cultura cadastrada com este nome.');
 
   FCulturaRepository.Inserir(PCultura);
 end;
 
 procedure TCulturaService.Atualizar(PCultura: TCultura);
 begin
+  if FCulturaRepository.ExisteNome(PCultura.Nome, PCultura.IdCultura) then
+    raise Exception.Create('Já existe uma cultura cadastrada com este nome.');
+
   FCulturaRepository.Atualizar(PCultura);
 end;
 
-procedure TCulturaService.Excluir(PId: Integer);
+procedure TCulturaService.Excluir(PIdCultura: Integer);
 begin
-  FCulturaRepository.Excluir(PId);
+  if FCulturaRepository.ExisteNaTabelaManejo(PIdCultura) then
+    raise Exception.Create('Não é possível excluir a cultura, ela está sendo usadoa em algum manejo');
+
+  FCulturaRepository.Excluir(PIdCultura);
 end;
 
 function TCulturaService.Listar(POrdenacao: string): TObjectList<TCultura>;
@@ -65,9 +71,9 @@ begin
   Result := FCulturaRepository.Listar(POrdenacao);
 end;
 
-function TCulturaService.ObterPorId(PId: Integer): TCultura;
+function TCulturaService.ObterPorId(PIdCultura: Integer): TCultura;
 begin
-  Result := FCulturaRepository.ObterPorId(PId);
+  Result := FCulturaRepository.ObterPorId(PIdCultura);
 end;
 
 function TCulturaService.Pesquisar(PBusca, POrdenacao: string): TObjectList<TCultura>;

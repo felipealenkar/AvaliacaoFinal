@@ -16,8 +16,10 @@ type
     constructor Create(PCulturaApiService: TCulturaApiService);
     destructor Destroy; override;
   function ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
-    procedure AtualizarChaveGemini(PChave: string);
+    procedure AtualizarChaveGemini(PChave: string; PTipo: Boolean);
     function ObterChaveGemini: String;
+    function VerificarTipoChave: Boolean;
+    function ObterCuriosidade: string;
   end;
 
 implementation
@@ -27,6 +29,11 @@ begin
   Result := FCulturaApiService.ObterChaveGemini;
 end;
 
+function TCulturaApiController.ObterCuriosidade: string;
+begin
+  Result := FCulturaApiService.ObterCuriosidade;
+end;
+
 { TCulturaService }
 
 function TCulturaApiController.ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
@@ -34,9 +41,14 @@ begin
   Result := FCulturaApiService.ObterUrlFotoPorApi(PNome, PNomeApi);
 end;
 
-procedure TCulturaApiController.AtualizarChaveGemini(PChave: string);
+function TCulturaApiController.VerificarTipoChave: Boolean;
 begin
-  FCulturaApiService.AtualizarChaveGemini(PChave);
+  Result := FCulturaApiService.VerificarTipoChave;
+end;
+
+procedure TCulturaApiController.AtualizarChaveGemini(PChave: string; PTipo: Boolean);
+begin
+  FCulturaApiService.AtualizarChaveGemini(PChave, PTipo);
 end;
 
 constructor TCulturaApiController.Create(PCulturaApiService: TCulturaApiService);

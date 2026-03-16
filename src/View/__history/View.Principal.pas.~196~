@@ -1,0 +1,253 @@
+unit View.Principal;
+
+interface
+
+uses
+  DataModule.Icons, View.TipoCultura, View.Cultura, View.RelatorioTipoCultura, View.RelatorioCultura,
+  View.RelatorioTipoManejo, View.RelatorioManejo, Factory.Provider, Controller.TipoCultura, Controller.ApiCultura,
+  View.Manejo, View.TipoManejo,
+
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
+  Vcl.Imaging.pngimage, Vcl.VirtualImage, Vcl.BaseImageCollection,
+  Vcl.ImageCollection, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList;
+
+type
+  TFrmPrincipal = class(TForm)
+    tmrDataHora: TTimer;
+    VimgLTelaPrincipal: TVirtualImageList;
+    PnlMenuPrincipal: TPanel;
+    LblDataHora: TLabel;
+    PnlRelatórios: TPanel;
+    LblRelatorios: TLabel;
+    PnlCadastros: TPanel;
+    SbtnCultura: TSpeedButton;
+    SbtnManejo: TSpeedButton;
+    SbtnTipoCultura: TSpeedButton;
+    LblCadastros: TLabel;
+    PnlPrincipal: TPanel;
+    PnlTopo: TPanel;
+    SbtnSair: TSpeedButton;
+    PnlDesktop: TPanel;
+    VimgLogo: TVirtualImage;
+    SbtnRelatorioTipoCultura: TSpeedButton;
+    SbtnTipoManejo: TSpeedButton;
+    SbtnMinimizar: TSpeedButton;
+    SbtnRelatorioCultura: TSpeedButton;
+    SbtnRelatorioManejo: TSpeedButton;
+    SbtnRelatorioTipoManejo: TSpeedButton;
+    TmrCuriosidade: TTimer;
+    PnlCuriosidades: TPanel;
+    LblCuriosidades: TLabel;
+    procedure tmrDataHoraTimer(Sender: TObject);
+    procedure SbtnSairClick(Sender: TObject);
+    procedure SbtnTipoCulturaClick(Sender: TObject);
+    procedure SbtnRelatorioTipoCulturaClick(Sender: TObject);
+    procedure SbtnCulturaClick(Sender: TObject);
+    procedure SbtnRelatorioTiposManejoClick(Sender: TObject);
+    procedure SbtnTipoManejoClick(Sender: TObject);
+    procedure SbtnManejoClick(Sender: TObject);
+    procedure SbtnMinimizarClick(Sender: TObject);
+    procedure SbtnRelatorioCulturaClick(Sender: TObject);
+    procedure SbtnRelatorioManejoClick(Sender: TObject);
+    procedure TmrCuriosidadeTimer(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+  private
+    FCulturaApiController: TCulturaApiController;
+    FVoltas: Integer;
+    procedure LimparPnlDesktop;
+    procedure AbrirFormNoPnlDesktop(PForm: TForm);
+    procedure ReceberComando(var Msg: TMessage); message WM_USER + 1234;
+    procedure AtualizarBotoes;
+    procedure ExecutarLetreiro(PPrimeiraExecucao: Boolean);
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FrmPrincipal: TFrmPrincipal;
+
+implementation
+
+{$R *.dfm}
+
+procedure TFrmPrincipal.AbrirFormNoPnlDesktop(PForm: TForm);
+begin
+  LimparPnlDesktop;
+  PForm.Parent := PnlDesktop;
+  PForm.Show;
+end;
+
+procedure TFrmPrincipal.AtualizarBotoes;
+begin
+  SbtnCultura.Enabled := True;
+  SbtnTipoCultura.Enabled := True;
+  SbtnTipoManejo.Enabled := True;
+  SbtnManejo.Enabled := True;
+
+
+  if PnlDesktop.ControlCount > 1 then
+  begin
+    if PnlDesktop.Controls[1] is TFrmTipoCultura then
+      SbtnTipoCultura.Enabled := False;
+    if PnlDesktop.Controls[1] is TFrmCultura then
+      SbtnCultura.Enabled := False;
+    if PnlDesktop.Controls[1] is TFrmTipoManejo then
+      SbtnTipoManejo.Enabled := False;
+    if PnlDesktop.Controls[1] is TFrmManejo then
+      SbtnManejo.Enabled := False;
+    // ... outros ifs aqui
+  end;
+end;
+
+procedure TFrmPrincipal.ExecutarLetreiro(PPrimeiraExecucao: Boolean);
+var
+  LCuriosidades: string;
+begin
+  if PPrimeiraExecucao then
+  begin
+    FVoltas := 0;
+    LblCuriosidades.Caption := '                                 !!! Bem-vindo ao HortiSys !!! - O parceiro perfeito para a sua horta.';
+    LblCuriosidades.Left := PnlCuriosidades.Width + 10;
+  end
+  else
+  begin
+    // MOVER: Esta é a única linha que deve rodar para o movimento acontecer
+    LblCuriosidades.Left := LblCuriosidades.Left - 2;
+
+    // RESETAR: Só entra aqui quando a frase sumir TOTALMENTE
+    // Verificamos se o Left é menor que o negativo da largura (sumiu à esquerda)
+    if LblCuriosidades.Left < -LblCuriosidades.Width then
+    begin
+      // Volta para o início (direita do painel)
+      LblCuriosidades.Left := PnlCuriosidades.Width;
+
+      Inc(FVoltas);
+
+      if FVoltas >= 3 then
+      begin
+        TThread.Synchronize(TThread.Current,
+        procedure
+        begin
+          try
+             LCuriosidades := FCulturaApiController.ObterCuriosidade;
+          except
+            // Mantém o texto atual
+          end;
+        end);
+        FVoltas := 0;
+      end;
+    end;
+  end;
+end;
+
+procedure TFrmPrincipal.FormCreate(Sender: TObject);
+begin
+  FCulturaApiController := TProviderFactory.NewCulturaApiController;
+end;
+
+procedure TFrmPrincipal.FormDestroy(Sender: TObject);
+begin
+  FCulturaApiController.Free;
+end;
+
+procedure TFrmPrincipal.FormShow(Sender: TObject);
+begin
+  ExecutarLetreiro(True);
+end;
+
+procedure TFrmPrincipal.LimparPnlDesktop;
+var
+  I: Integer;
+begin
+  for I := PnlDesktop.ControlCount - 1 downto 1 do
+    if (PnlDesktop.Controls[I] is TForm) and
+       not (csDestroying in PnlDesktop.Controls[I].ComponentState) then
+      PnlDesktop.Controls[I].Free;
+end;
+
+procedure TFrmPrincipal.SbtnCulturaClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewCulturaView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.SbtnManejoClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewManejoView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.SbtnMinimizarClick(Sender: TObject);
+begin
+  Application.Minimize;
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioTiposManejoClick(Sender: TObject);
+var
+  LFrmRelatorioTipoManejo: TFrmRelatorioTipoManejo;
+begin
+  LFrmRelatorioTipoManejo := TProviderFactory.NewRelatorioTipoManejoView(Self);
+  LFrmRelatorioTipoManejo.CarregarRelatorio('', 'id_tipomanejo');
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioCulturaClick(Sender: TObject);
+var
+  LFrmRelatorioCultura: TFrmRelatorioCultura;
+begin
+  LFrmRelatorioCultura := TProviderFactory.NewRelatorioCulturaView(Self);
+  LFrmRelatorioCultura.CarregarRelatorio('', 'id_cultura');
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioManejoClick(Sender: TObject);
+var
+  LFrmRelatorioManejo: TFrmRelatorioManejo;
+begin
+  LFrmRelatorioManejo := TProviderFactory.NewRelatorioManejoView(Self);
+  LFrmRelatorioManejo.CarregarRelatorio('', 'id_manejo');
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioTipoCulturaClick(Sender: TObject);
+var
+  LFrmRelatorioTipoCultura: TFrmRelatorioTipoCultura;
+begin
+  LFrmRelatorioTipoCultura := TProviderFactory.NewRelatorioTipoCulturaView(Self);
+  LFrmRelatorioTipoCultura.CarregarRelatorio('', 'id_tipocultura');
+end;
+
+procedure TFrmPrincipal.SbtnSairClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TFrmPrincipal.SbtnTipoCulturaClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewTipoCulturaView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.SbtnTipoManejoClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewTipoManejoView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.TmrCuriosidadeTimer(Sender: TObject);
+begin
+  ExecutarLetreiro(False);
+end;
+
+procedure TFrmPrincipal.tmrDataHoraTimer(Sender: TObject);
+begin
+  LblDataHora.Caption := DateToStr(Date) + ' - ' + TimeToStr(Now);
+end;
+
+procedure TFrmPrincipal.ReceberComando(var Msg: TMessage);
+begin
+  AtualizarBotoes;
+end;
+
+end.
