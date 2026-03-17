@@ -37,10 +37,14 @@ begin
   var URLBASE_GEMINI: string := 'https://generativelanguage.googleapis.com/v1beta';
   var KEY_GEMINI: String := PCulturaApi.ChaveGemini;
   Result := '';
+
+  LRequest := nil;
+  LResponse := nil;
+
   LClient := TRESTClient.Create(nil);
   try
-    LRequest := TRESTRequest.Create(LClient);
-    LResponse := TRESTResponse.Create(LClient);
+    LRequest := TRESTRequest.Create(nil);
+    LResponse := TRESTResponse.Create(nil);
     LClient.BaseURL := URLBASE_GEMINI;
     LRequest.Client := LClient;
     LRequest.Response := LResponse;
@@ -97,6 +101,8 @@ begin
       end;
     end;
   finally
+    LResponse.Free;
+    LRequest.Free;
     LClient.Free;
   end;
 end;
@@ -112,10 +118,14 @@ var
 begin
   var URLBASE_FOTO: string := 'https://trefle.io/api';
   var KEY_TREFLE: string := PCulturaApi.ChaveTrefle;
+
+  LRequest := nil;
+  LResponse := nil;
+
   LClient  := TRESTClient.Create(nil);
   try
-    LRequest := TRESTRequest.Create(LClient);
-    LResponse := TRESTResponse.Create(LClient);
+    LRequest := TRESTRequest.Create(nil);
+    LResponse := TRESTResponse.Create(nil);
     LRequest.Client := LClient;
     LRequest.Response := LResponse;
     LClient.BaseURL := URLBASE_FOTO;
@@ -145,6 +155,8 @@ begin
       LJSON.Free;
     end;
   finally
+    LResponse.Free;
+    LRequest.Free;
     LClient.Free;
   end;
 end;
@@ -161,11 +173,14 @@ var
 begin
   Result := '';
 
+  LRequest := nil;
+  LResponse := nil;
+
   LClient := TRESTClient.Create('https://api.gbif.org/v1/occurrence/search');
 
-  try
-    LRequest := TRESTRequest.Create(LClient);
-    LResponse := TRESTResponse.Create(LClient);
+   try
+    LRequest := TRESTRequest.Create(nil);
+    LResponse := TRESTResponse.Create(nil);
     LRequest.Client := LClient;
     LRequest.Response := LResponse;
     LRequest.Method := rmGET;
@@ -205,8 +220,9 @@ begin
     finally
       LJSON.Free;
     end;
-
   finally
+    LResponse.Free;
+    LRequest.Free;
     LClient.Free;
   end;
 end;

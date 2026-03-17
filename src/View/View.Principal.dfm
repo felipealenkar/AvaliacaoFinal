@@ -7814,7 +7814,6 @@
       Color = 14149085
       ParentBackground = False
       TabOrder = 0
-      ExplicitTop = 441
       object LblRelatorios: TLabel
         Left = 1
         Top = 1
@@ -8144,17 +8143,21 @@
       Left = 1
       Top = 1
       Width = 789
-      Height = 85
+      Height = 83
       Align = alTop
       Color = 14149085
       ParentBackground = False
       TabOrder = 0
       object PnlBotoes: TPanel
         AlignWithMargins = True
-        Left = 464
-        Top = 4
-        Width = 321
-        Height = 77
+        Left = 478
+        Top = 1
+        Width = 310
+        Height = 81
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
         Align = alRight
         BevelOuter = bvNone
         Color = 14149085
@@ -8171,11 +8174,10 @@
         TabOrder = 0
         object SbtnMinimizar: TSpeedButton
           AlignWithMargins = True
-          Left = 13
+          Left = 2
           Top = 3
           Width = 182
-          Height = 69
-          Margins.Bottom = 5
+          Height = 75
           Align = alRight
           Caption = 'Minimizar'
           ImageIndex = 7
@@ -8191,15 +8193,16 @@
           ParentFont = False
           StyleElements = [seClient, seBorder]
           OnClick = SbtnMinimizarClick
-          ExplicitTop = 4
+          ExplicitLeft = 13
+          ExplicitTop = 11
+          ExplicitHeight = 69
         end
         object SbtnSair: TSpeedButton
           AlignWithMargins = True
-          Left = 201
+          Left = 190
           Top = 3
           Width = 117
-          Height = 69
-          Margins.Bottom = 5
+          Height = 75
           Align = alRight
           Caption = 'Sair'
           ImageIndex = 3
@@ -8215,17 +8218,17 @@
           ParentFont = False
           StyleElements = [seClient, seBorder]
           OnClick = SbtnSairClick
-          ExplicitLeft = 608
-          ExplicitTop = 4
-          ExplicitHeight = 75
+          ExplicitLeft = 201
+          ExplicitTop = 1
+          ExplicitHeight = 73
         end
       end
       object PnlCuriosidades: TPanel
         AlignWithMargins = True
         Left = 4
         Top = 4
-        Width = 454
-        Height = 77
+        Width = 471
+        Height = 75
         Align = alClient
         Alignment = taRightJustify
         BevelOuter = bvNone
@@ -8242,29 +8245,34 @@
         ParentFont = False
         TabOrder = 1
         object PbCuriosidades: TPaintBox
+          AlignWithMargins = True
           Left = 0
-          Top = 0
-          Width = 454
-          Height = 77
+          Top = 3
+          Width = 471
+          Height = 69
+          Margins.Left = 0
+          Margins.Right = 0
           Align = alClient
           Color = 14149085
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clCrimson
-          Font.Height = -47
+          Font.Height = -40
           Font.Name = 'Segoe UI'
           Font.Style = []
           ParentColor = False
           ParentFont = False
           OnPaint = PbCuriosidadesPaint
-          ExplicitWidth = 1000
+          ExplicitLeft = 5
+          ExplicitWidth = 450
+          ExplicitHeight = 70
         end
       end
     end
     object PnlDesktop: TPanel
       Left = 1
-      Top = 86
+      Top = 84
       Width = 789
-      Height = 922
+      Height = 924
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
@@ -8272,7 +8280,7 @@
         Left = 0
         Top = 0
         Width = 789
-        Height = 922
+        Height = 924
         Align = alClient
         ImageCollection = DmIcons.ImgCltIcons
         ImageWidth = 0
@@ -8281,6 +8289,7 @@
         ImageName = 'HortisysLogoSemFundoGrande'
         ExplicitLeft = 3
         ExplicitTop = -1
+        ExplicitHeight = 922
       end
     end
   end
@@ -8339,11 +8348,11 @@
     ImageCollection = DmIcons.ImgCltIcons
     Width = 60
     Height = 60
-    Left = 890
-    Top = 689
+    Left = 954
+    Top = 177
   end
   object TmrCuriosidade: TTimer
-    Interval = 10
+    Interval = 1
     OnTimer = TmrCuriosidadeTimer
     Left = 810
     Top = 105

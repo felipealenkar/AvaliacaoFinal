@@ -49,6 +49,7 @@ begin
              '3. Proibido usar aspas no início ou fim. ' +
              '4. Proibido usar introduções ou explicações (ex: -Você sabia que...-). ' +
              '5. O texto deve ter no máximo 200 caracteres para caber na tela. ' +
+             '6. A gramática do português deve ser respeitada e com toda a acentuação. ' +
              ' ' +
              'Exemplo de saída esperada: A hortelã-pimenta pode ajudar a repelir formigas e ' +
              'outros insetos devido ao seu forte aroma de mentol. ' +

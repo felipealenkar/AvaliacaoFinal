@@ -1,0 +1,81 @@
+unit Thread.Curiosidade;
+
+interface
+
+uses
+  System.Classes,
+  System.SysUtils;
+
+type
+  TThreadCuriosidade = class(TThread)
+  private
+    FOnResult: TProc<string>;
+    FOnError: TProc<string>;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(const AOnResult, AOnError: TProc<string>);
+  end;
+
+implementation
+
+uses
+  Controller.ApiCultura;
+
+{ TThreadCuriosidade }
+
+constructor TThreadCuriosidade.Create(const AOnResult, AOnError: TProc<string>);
+begin
+  inherited Create(True);
+  FreeOnTerminate := True;
+
+  FOnResult := AOnResult;
+  FOnError := AOnError;
+
+  Start;
+end;
+
+procedure TThreadCuriosidade.Execute;
+var
+  LCuriosidade: string;
+  LController: TCulturaApiController;
+begin
+  if Terminated then Exit;
+
+  LController := TCulturaApiController.Create;
+  try
+    try
+      LCuriosidade := LController.ObterCuriosidade;
+    except
+      on E: Exception do
+      begin
+        if Terminated then Exit;
+
+        if Assigned(FOnError) then
+          TThread.Queue(nil,
+            procedure
+            begin
+              if Assigned(FOnError) then
+                FOnError(E.Message);
+            end);
+
+        Exit;
+      end;
+    end;
+
+    if Terminated then Exit;
+
+    if Assigned(FOnResult) then
+      TThread.Queue(nil,
+        procedure
+        begin
+          if Assigned(FOnResult) then
+            FOnResult(LCuriosidade);
+        end);
+
+  finally
+    LController.Free;
+  end;
+end;
+
+end.

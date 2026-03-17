@@ -1,4 +1,4 @@
-unit View.Principal;
+﻿unit View.Principal;
 
 interface
 
@@ -18,7 +18,7 @@ type
     VimgLTelaPrincipal: TVirtualImageList;
     PnlMenuPrincipal: TPanel;
     LblDataHora: TLabel;
-    PnlRelat�rios: TPanel;
+    PnlRelatórios: TPanel;
     LblRelatorios: TLabel;
     PnlCadastros: TPanel;
     SbtnCultura: TSpeedButton;
@@ -62,12 +62,14 @@ type
     procedure SbtnConfigurarChaveTrefleClick(Sender: TObject);
     procedure SbtnConfigurarChaveGeminiClick(Sender: TObject);
   private
+    FThreadCuriosidade: TThread;
     FCulturaApiController: TCulturaApiController;
     FVoltas: Integer;
-    FXPos: Integer; // Posi��o horizontal do texto
+    FXPos: Integer; // Posição horizontal do texto
     FCuriosidades: String;
     FBuscaEmAndamento: Boolean;
     FProximoTexto: string;
+    FFechando: Boolean;
 
     procedure BuscarNovaCuriosidade;
     procedure LimparPnlDesktop;
@@ -119,38 +121,50 @@ begin
 end;
 
 procedure TFrmPrincipal.BuscarNovaCuriosidade;
-var
-  LThread: TThread;
 begin
+  if Assigned(FThreadCuriosidade) then Exit;
+
   FBuscaEmAndamento := True;
 
-  LThread := TThread.CreateAnonymousThread(
+  FThreadCuriosidade := TThread.CreateAnonymousThread(
     procedure
     var
-      LCurio: String;
+      LCuriosidade: string;
     begin
       try
-        // Busca o dado na API
-        LCurio := FCulturaApiController.ObterCuriosidade;
+        if TThread.CurrentThread.CheckTerminated then Exit;
+        if FFechando then Exit;
 
-        // Verificamos se a thread foi sinalizada para terminar ou se o App fechou
-        if TThread.CurrentThread.CheckTerminated or Application.Terminated then
-          Exit;
+        try
+          if not Assigned(FCulturaApiController) then Exit;
+          LCuriosidade := FCulturaApiController.ObterCuriosidade;
+        except
+          on E: Exception do
+          begin
+            OutputDebugString(PChar('Erro curiosidade: ' + E.Message));
+            Exit;
+          end;
+        end;
 
-        TThread.Synchronize(nil,
+        if TThread.CurrentThread.CheckTerminated then Exit;
+        if FFechando then Exit;
+
+        TThread.Queue(nil,
           procedure
           begin
-            // Check final antes de mexer na UI
-            if not Application.Terminated then
-              FProximoTexto := LCurio;
+            if Application.Terminated or FFechando then Exit;
+
+            FProximoTexto := LCuriosidade;
+            FThreadCuriosidade := nil;
           end);
+
       finally
         FBuscaEmAndamento := False;
       end;
     end);
 
-  LThread.FreeOnTerminate := True;
-  LThread.Start;
+  FThreadCuriosidade.FreeOnTerminate := True;
+  FThreadCuriosidade.Start;
 end;
 
 procedure TFrmPrincipal.ExecutarLetreiro(PPrimeiraExecucao: Boolean);
@@ -163,9 +177,14 @@ begin
     Exit;
   end;
 
-  Dec(FXPos, 5);
+  //{Velocidade do texto:
+  //
+  //Aumentar no Dec = Mais rápido porém mais tremido
+  //Diminuir no Timer = Mais rápido porém mais consumo de CPU}
+  //
+  Dec(FXPos, 3);
 
-  // Momento exato em que o texto sumiu da tela � esquerda
+  // Momento exato em que o texto sumiu da tela à esquerda
   if FXPos < -PbCuriosidades.Canvas.TextWidth(FCuriosidades) then
   begin
     FXPos := PbCuriosidades.Width;
@@ -176,8 +195,8 @@ begin
 
     Inc(FVoltas);
 
-    if not FBuscaEmAndamento then
-       BuscarNovaCuriosidade;
+    if not FBuscaEmAndamento and not Assigned(FThreadCuriosidade) then
+      BuscarNovaCuriosidade;
   end;
 
   PbCuriosidades.Invalidate;
@@ -190,7 +209,24 @@ end;
 
 procedure TFrmPrincipal.FormDestroy(Sender: TObject);
 begin
-  FCulturaApiController.Free;
+  FFechando := True;
+  TmrCuriosidade.Enabled := False;
+
+  // Apenas sinalizando. Não usaei WaitFor porque a thread
+  // já tem FreeOnTerminate := True no BuscarNovaCuriosidade.
+  if Assigned(FThreadCuriosidade) then
+  begin
+    FThreadCuriosidade.Terminate;
+  end;
+
+  // Limpar o controller
+  if Assigned(FCulturaApiController) then
+    FreeAndNil(FCulturaApiController);
+
+  // O TIRO DE MISERICÓRDIA:
+  // Encerra o processo imediatamente. O Windows limpa toda a
+  // memória ram alocada pelo HortiSys instantaneamente.
+  Halt(0);
 end;
 
 procedure TFrmPrincipal.FormShow(Sender: TObject);
@@ -264,8 +300,8 @@ begin
   PbCuriosidades.Canvas.FillRect(PbCuriosidades.ClientRect);
   PbCuriosidades.Canvas.Brush.Style := bsClear;
 
-  // Desenha o texto na posi��o atual (FXPos)
-  PbCuriosidades.Canvas.TextOut(FXPos, 5,  FCuriosidades);
+  // Desenha o texto na posição atual (FXPos)
+  PbCuriosidades.Canvas.TextOut(FXPos, 4,  FCuriosidades);
 end;
 
 procedure TFrmPrincipal.SbtnConfigurarChaveGeminiClick(Sender: TObject);
@@ -366,7 +402,8 @@ end;
 
 procedure TFrmPrincipal.TmrCuriosidadeTimer(Sender: TObject);
 begin
-  ExecutarLetreiro(False);
+  if FFechando then Exit;
+    ExecutarLetreiro(False);
 end;
 
 procedure TFrmPrincipal.tmrDataHoraTimer(Sender: TObject);
