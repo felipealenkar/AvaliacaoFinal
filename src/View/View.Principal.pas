@@ -168,12 +168,15 @@ begin
 end;
 
 procedure TFrmPrincipal.ExecutarLetreiro(PPrimeiraExecucao: Boolean);
+var
+  LChaveGemini: string;
 begin
   if PPrimeiraExecucao then
   begin
-    FCuriosidades := '!!! Bem-vindo ao HortiSys !!! - O parceiro perfeito para a sua horta.';
+    FCuriosidades := '!!! HortiSys !!! - O parceiro perfeito para a sua horta.';
     FProximoTexto := FCuriosidades; // Inicializa o buffer
     FXPos := PbCuriosidades.Width * 3; //Onde o texto inicia da direita para esquerda
+    TmrCuriosidade.Enabled := True;
     Exit;
   end;
 
@@ -195,8 +198,15 @@ begin
 
     Inc(FVoltas);
 
-    if not FBuscaEmAndamento and not Assigned(FThreadCuriosidade) then
-      BuscarNovaCuriosidade;
+    LChaveGemini := FCulturaApiController.ObterChaveGemini;
+
+    if Length(Trim(LChaveGemini)) < 30 then
+      FProximoTexto := '!!! HortiSys !!! - Para receber curiosidades sobre plantas, cadastre sua chave Gemini.'
+    else
+    begin
+      if not FBuscaEmAndamento and not Assigned(FThreadCuriosidade) then
+       BuscarNovaCuriosidade;
+    end;
   end;
 
   PbCuriosidades.Invalidate;
@@ -232,7 +242,6 @@ end;
 procedure TFrmPrincipal.FormShow(Sender: TObject);
 begin
   ExecutarLetreiro(True);
-  TmrCuriosidade.Enabled := True;
 end;
 
 procedure TFrmPrincipal.AtualizarChaveGemini;

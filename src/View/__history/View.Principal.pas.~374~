@@ -1,0 +1,428 @@
+﻿unit View.Principal;
+
+interface
+
+uses
+  DataModule.Icons, View.TipoCultura, View.Cultura, View.RelatorioTipoCultura, View.RelatorioCultura,
+  View.RelatorioTipoManejo, View.RelatorioManejo, Factory.Provider, Controller.TipoCultura, Controller.ApiCultura,
+  View.Manejo, View.TipoManejo,
+
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
+  Vcl.Imaging.pngimage, Vcl.VirtualImage, Vcl.BaseImageCollection,
+  Vcl.ImageCollection, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList;
+
+type
+  TFrmPrincipal = class(TForm)
+    tmrDataHora: TTimer;
+    VimgLTelaPrincipal: TVirtualImageList;
+    PnlMenuPrincipal: TPanel;
+    LblDataHora: TLabel;
+    PnlRelatórios: TPanel;
+    LblRelatorios: TLabel;
+    PnlCadastros: TPanel;
+    SbtnCultura: TSpeedButton;
+    SbtnManejo: TSpeedButton;
+    SbtnTipoCultura: TSpeedButton;
+    LblCadastros: TLabel;
+    PnlPrincipal: TPanel;
+    PnlTopo: TPanel;
+    SbtnSair: TSpeedButton;
+    PnlDesktop: TPanel;
+    VimgLogo: TVirtualImage;
+    SbtnRelatorioTipoCultura: TSpeedButton;
+    SbtnTipoManejo: TSpeedButton;
+    SbtnMinimizar: TSpeedButton;
+    SbtnRelatorioCultura: TSpeedButton;
+    SbtnRelatorioManejo: TSpeedButton;
+    SbtnRelatorioTipoManejo: TSpeedButton;
+    TmrCuriosidade: TTimer;
+    PnlBotoes: TPanel;
+    PnlCuriosidades: TPanel;
+    PbCuriosidades: TPaintBox;
+    PnlChaveGemini: TPanel;
+    SbtnConfigurarChaveTrefle: TSpeedButton;
+    SbtnConfigurarChaveGemini: TSpeedButton;
+    procedure tmrDataHoraTimer(Sender: TObject);
+    procedure SbtnSairClick(Sender: TObject);
+    procedure SbtnTipoCulturaClick(Sender: TObject);
+    procedure SbtnRelatorioTipoCulturaClick(Sender: TObject);
+    procedure SbtnCulturaClick(Sender: TObject);
+    procedure SbtnRelatorioTiposManejoClick(Sender: TObject);
+    procedure SbtnTipoManejoClick(Sender: TObject);
+    procedure SbtnManejoClick(Sender: TObject);
+    procedure SbtnMinimizarClick(Sender: TObject);
+    procedure SbtnRelatorioCulturaClick(Sender: TObject);
+    procedure SbtnRelatorioManejoClick(Sender: TObject);
+    procedure TmrCuriosidadeTimer(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure PbCuriosidadesPaint(Sender: TObject);
+    procedure SbtnConfigurarChaveTrefleClick(Sender: TObject);
+    procedure SbtnConfigurarChaveGeminiClick(Sender: TObject);
+  private
+    FThreadCuriosidade: TThread;
+    FCulturaApiController: TCulturaApiController;
+    FVoltas: Integer;
+    FXPos: Integer; // Posição horizontal do texto
+    FCuriosidades: String;
+    FBuscaEmAndamento: Boolean;
+    FProximoTexto: string;
+    FFechando: Boolean;
+
+    procedure BuscarNovaCuriosidade;
+    procedure LimparPnlDesktop;
+    procedure AbrirFormNoPnlDesktop(PForm: TForm);
+    procedure ReceberComando(var Msg: TMessage); message WM_USER + 1234;
+    procedure AtualizarBotoes;
+    procedure ExecutarLetreiro(PPrimeiraExecucao: Boolean);
+    procedure AtualizarChaveGemini;
+    procedure AtualizarChaveTrefle;
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FrmPrincipal: TFrmPrincipal;
+
+implementation
+
+{$R *.dfm}
+
+procedure TFrmPrincipal.AbrirFormNoPnlDesktop(PForm: TForm);
+begin
+  LimparPnlDesktop;
+  PForm.Parent := PnlDesktop;
+  PForm.Show;
+end;
+
+procedure TFrmPrincipal.AtualizarBotoes;
+begin
+  SbtnCultura.Enabled := True;
+  SbtnTipoCultura.Enabled := True;
+  SbtnTipoManejo.Enabled := True;
+  SbtnManejo.Enabled := True;
+
+
+  if PnlDesktop.ControlCount > 1 then
+  begin
+    if PnlDesktop.Controls[1] is TFrmTipoCultura then
+      SbtnTipoCultura.Enabled := False;
+    if PnlDesktop.Controls[1] is TFrmCultura then
+      SbtnCultura.Enabled := False;
+    if PnlDesktop.Controls[1] is TFrmTipoManejo then
+      SbtnTipoManejo.Enabled := False;
+    if PnlDesktop.Controls[1] is TFrmManejo then
+      SbtnManejo.Enabled := False;
+    // ... outros ifs aqui
+  end;
+end;
+
+procedure TFrmPrincipal.BuscarNovaCuriosidade;
+begin
+  if Assigned(FThreadCuriosidade) then Exit;
+
+  FBuscaEmAndamento := True;
+
+  FThreadCuriosidade := TThread.CreateAnonymousThread(
+    procedure
+    var
+      LCuriosidade: string;
+    begin
+      try
+        if TThread.CurrentThread.CheckTerminated then Exit;
+        if FFechando then Exit;
+
+        try
+          if not Assigned(FCulturaApiController) then Exit;
+          LCuriosidade := FCulturaApiController.ObterCuriosidade;
+        except
+          on E: Exception do
+          begin
+            OutputDebugString(PChar('Erro curiosidade: ' + E.Message));
+            Exit;
+          end;
+        end;
+
+        if TThread.CurrentThread.CheckTerminated then Exit;
+        if FFechando then Exit;
+
+        TThread.Queue(nil,
+          procedure
+          begin
+            if Application.Terminated or FFechando then Exit;
+
+            FProximoTexto := LCuriosidade;
+            FThreadCuriosidade := nil;
+          end);
+
+      finally
+        FBuscaEmAndamento := False;
+      end;
+    end);
+
+  FThreadCuriosidade.FreeOnTerminate := True;
+  FThreadCuriosidade.Start;
+end;
+
+procedure TFrmPrincipal.ExecutarLetreiro(PPrimeiraExecucao: Boolean);
+var
+  LChaveGemini: string;
+begin
+  if PPrimeiraExecucao then
+  begin
+    FCuriosidades := '!!! Bem-vindo ao HortiSys !!! - O parceiro perfeito para a sua horta.';
+    FProximoTexto := FCuriosidades; // Inicializa o buffer
+    FXPos := PbCuriosidades.Width * 3; //Onde o texto inicia da direita para esquerda
+    Exit;
+  end;
+
+  //{Velocidade do texto:
+  //
+  //Aumentar no Dec = Mais rápido porém mais tremido
+  //Diminuir no Timer = Mais rápido porém mais consumo de CPU}
+  //
+  Dec(FXPos, 3);
+
+  // Momento exato em que o texto sumiu da tela à esquerda
+  if FXPos < -PbCuriosidades.Canvas.TextWidth(FCuriosidades) then
+  begin
+    FXPos := PbCuriosidades.Width;
+
+    // Se houver um novo texto vindo da API no "Buffer", trocamos agora!
+    if (FProximoTexto <> EmptyStr) and (FProximoTexto <> FCuriosidades) then
+       FCuriosidades := FProximoTexto;
+
+    Inc(FVoltas);
+
+    LChaveGemini := FCulturaApiController.ObterChaveGemini;
+
+    if Length(Trim(LChaveGemini)) < 30 then
+      FProximoTexto := '!!! HortiSys !!! - O parceiro perfeito para a sua horta.'
+    else
+    begin
+      if not FBuscaEmAndamento and not Assigned(FThreadCuriosidade) then
+       BuscarNovaCuriosidade;
+    end;
+  end;
+
+  PbCuriosidades.Invalidate;
+end;
+
+procedure TFrmPrincipal.FormCreate(Sender: TObject);
+begin
+  FCulturaApiController := TProviderFactory.NewCulturaApiController;
+end;
+
+procedure TFrmPrincipal.FormDestroy(Sender: TObject);
+begin
+  FFechando := True;
+  TmrCuriosidade.Enabled := False;
+
+  // Apenas sinalizando. Não usaei WaitFor porque a thread
+  // já tem FreeOnTerminate := True no BuscarNovaCuriosidade.
+  if Assigned(FThreadCuriosidade) then
+  begin
+    FThreadCuriosidade.Terminate;
+  end;
+
+  // Limpar o controller
+  if Assigned(FCulturaApiController) then
+    FreeAndNil(FCulturaApiController);
+
+  // O TIRO DE MISERICÓRDIA:
+  // Encerra o processo imediatamente. O Windows limpa toda a
+  // memória ram alocada pelo HortiSys instantaneamente.
+  Halt(0);
+end;
+
+procedure TFrmPrincipal.FormShow(Sender: TObject);
+begin
+  ExecutarLetreiro(True);
+  TmrCuriosidade.Enabled := True;
+end;
+
+procedure TFrmPrincipal.AtualizarChaveGemini;
+var
+  LChave: String;
+  LResposta: Boolean;
+begin
+  begin
+    repeat
+    LResposta := InputQuery('Digite a chave:', 'Chave Gemini', LChave);
+    if LResposta then
+    try
+      if Trim(LChave) <> EmptyStr then
+      begin
+        FCulturaApiController.AtualizarChaveGemini(LChave);
+        MessageBox(0, PChar('A chave Gemini foi definida'),
+                        'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+        Exit;
+      end;
+    except
+      on E: Exception do
+        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    end;
+  until not LResposta;
+  end;
+end;
+
+procedure TFrmPrincipal.AtualizarChaveTrefle;
+var
+  LChave: String;
+  LResposta: Boolean;
+begin
+  begin
+    repeat
+    LResposta := InputQuery('Digite a chave:', 'Chave Trefle', LChave);
+    if LResposta then
+    try
+      if Trim(LChave) <> EmptyStr then
+      begin
+        FCulturaApiController.AtualizarChaveTrefle(LChave);
+        MessageBox(0, PChar('A chave Trefle foi definida'),
+                        'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+        Exit;
+      end;
+    except
+      on E: Exception do
+        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    end;
+  until not LResposta;
+  end;
+end;
+
+procedure TFrmPrincipal.LimparPnlDesktop;
+var
+  I: Integer;
+begin
+  for I := PnlDesktop.ControlCount - 1 downto 1 do
+    if (PnlDesktop.Controls[I] is TForm) and
+       not (csDestroying in PnlDesktop.Controls[I].ComponentState) then
+      PnlDesktop.Controls[I].Free;
+end;
+
+procedure TFrmPrincipal.PbCuriosidadesPaint(Sender: TObject);
+begin
+  PbCuriosidades.Canvas.FillRect(PbCuriosidades.ClientRect);
+  PbCuriosidades.Canvas.Brush.Style := bsClear;
+
+  // Desenha o texto na posição atual (FXPos)
+  PbCuriosidades.Canvas.TextOut(FXPos, 4,  FCuriosidades);
+end;
+
+procedure TFrmPrincipal.SbtnConfigurarChaveGeminiClick(Sender: TObject);
+begin
+  AtualizarChaveGemini;
+end;
+
+procedure TFrmPrincipal.SbtnConfigurarChaveTrefleClick(Sender: TObject);
+begin
+  AtualizarChaveTrefle;
+end;
+
+procedure TFrmPrincipal.SbtnCulturaClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewCulturaView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.SbtnManejoClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewManejoView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.SbtnMinimizarClick(Sender: TObject);
+begin
+  Application.Minimize;
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioTiposManejoClick(Sender: TObject);
+var
+  LFrmRelatorioTipoManejo: TFrmRelatorioTipoManejo;
+begin
+  try
+    TmrCuriosidade.Enabled := False;
+    LFrmRelatorioTipoManejo := TProviderFactory.NewRelatorioTipoManejoView(Self);
+    LFrmRelatorioTipoManejo.CarregarRelatorio('', 'id_tipomanejo');
+  finally
+    TmrCuriosidade.Enabled := True;
+  end;
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioCulturaClick(Sender: TObject);
+var
+  LFrmRelatorioCultura: TFrmRelatorioCultura;
+begin
+  try
+    TmrCuriosidade.Enabled := False;
+    LFrmRelatorioCultura := TProviderFactory.NewRelatorioCulturaView(Self);
+    LFrmRelatorioCultura.CarregarRelatorio('', 'id_cultura');
+  finally
+    TmrCuriosidade.Enabled := True;
+  end;
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioManejoClick(Sender: TObject);
+var
+  LFrmRelatorioManejo: TFrmRelatorioManejo;
+begin
+  try
+    TmrCuriosidade.Enabled := False;
+    LFrmRelatorioManejo := TProviderFactory.NewRelatorioManejoView(Self);
+    LFrmRelatorioManejo.CarregarRelatorio('', 'id_manejo');
+  finally
+    TmrCuriosidade.Enabled := True;
+  end;
+end;
+
+procedure TFrmPrincipal.SbtnRelatorioTipoCulturaClick(Sender: TObject);
+var
+  LFrmRelatorioTipoCultura: TFrmRelatorioTipoCultura;
+begin
+  try
+    TmrCuriosidade.Enabled := False;
+    LFrmRelatorioTipoCultura := TProviderFactory.NewRelatorioTipoCulturaView(Self);
+    LFrmRelatorioTipoCultura.CarregarRelatorio('', 'id_tipocultura');
+  finally
+    TmrCuriosidade.Enabled := True;
+  end;
+end;
+
+procedure TFrmPrincipal.SbtnSairClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TFrmPrincipal.SbtnTipoCulturaClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewTipoCulturaView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.SbtnTipoManejoClick(Sender: TObject);
+begin
+  AbrirFormNoPnlDesktop(TProviderFactory.NewTipoManejoView(Self));
+  AtualizarBotoes;
+end;
+
+procedure TFrmPrincipal.TmrCuriosidadeTimer(Sender: TObject);
+begin
+  if FFechando then Exit;
+    ExecutarLetreiro(False);
+end;
+
+procedure TFrmPrincipal.tmrDataHoraTimer(Sender: TObject);
+begin
+  LblDataHora.Caption := DateToStr(Date) + ' - ' + TimeToStr(Now);
+end;
+
+procedure TFrmPrincipal.ReceberComando(var Msg: TMessage);
+begin
+  AtualizarBotoes;
+end;
+
+end.
