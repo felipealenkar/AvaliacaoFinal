@@ -37,8 +37,9 @@ type
     SbtnRelatorioManejo: TSpeedButton;
     SbtnRelatorioTipoManejo: TSpeedButton;
     TmrCuriosidade: TTimer;
+    PnlBotoes: TPanel;
     PnlCuriosidades: TPanel;
-    LblCuriosidades: TLabel;
+    PbCuriosidades: TPaintBox;
     procedure tmrDataHoraTimer(Sender: TObject);
     procedure SbtnSairClick(Sender: TObject);
     procedure SbtnTipoCulturaClick(Sender: TObject);
@@ -54,9 +55,16 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure PbCuriosidadesPaint(Sender: TObject);
   private
     FCulturaApiController: TCulturaApiController;
     FVoltas: Integer;
+    FXPos: Integer; // Posição horizontal do texto
+    FCuriosidades: String;
+    FBuscaEmAndamento: Boolean;
+    FProximoTexto: string;
+
+    procedure BuscarNovaCuriosidade;
     procedure LimparPnlDesktop;
     procedure AbrirFormNoPnlDesktop(PForm: TForm);
     procedure ReceberComando(var Msg: TMessage); message WM_USER + 1234;
@@ -103,49 +111,69 @@ begin
   end;
 end;
 
+procedure TFrmPrincipal.BuscarNovaCuriosidade;
+var
+  LThread: TThread;
+begin
+  FBuscaEmAndamento := True;
+
+  LThread := TThread.CreateAnonymousThread(
+    procedure
+    var
+      LCurio: String;
+    begin
+      try
+        // Busca o dado na API
+        LCurio := FCulturaApiController.ObterCuriosidade;
+
+        // Verificamos se a thread foi sinalizada para terminar ou se o App fechou
+        if TThread.CurrentThread.CheckTerminated or Application.Terminated then
+          Exit;
+
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            // Check final antes de mexer na UI
+            if not Application.Terminated then
+              FProximoTexto := LCurio;
+          end);
+      finally
+        FBuscaEmAndamento := False;
+      end;
+    end);
+
+  LThread.FreeOnTerminate := True;
+  LThread.Start;
+end;
+
 procedure TFrmPrincipal.ExecutarLetreiro(PPrimeiraExecucao: Boolean);
 begin
   if PPrimeiraExecucao then
   begin
-    FVoltas := 0;
-    LblCuriosidades.Caption := '                                 !!! Bem-vindo ao HortiSys !!! - O parceiro perfeito para a sua horta.';
-    LblCuriosidades.Left := PnlCuriosidades.Width + 50;
-  end
-  else
-  begin
-    // MOVER: Esta é a única linha que deve rodar para o movimento acontecer
-    LblCuriosidades.Left := LblCuriosidades.Left - 3;
-
-    // RESETAR: Só entra aqui quando a frase sumir TOTALMENTE
-    // Verificamos se o Left é menor que o negativo da largura (sumiu à esquerda)
-    if LblCuriosidades.Left < -LblCuriosidades.Width then
-    begin
-      // Volta para o início (direita do painel)
-      LblCuriosidades.Left := PnlCuriosidades.Width + 50;
-
-      Inc(FVoltas);
-
-      if FVoltas >= 3 then
-      begin
-        TThread.CreateAnonymousThread(
-        procedure
-        begin
-          var LCuriosidades: String;
-          try
-            LCuriosidades := FCulturaApiController.ObterCuriosidade;
-          except
-            // Mantém o texto atual
-          end;
-          TThread.Synchronize(TThread.Current,
-          procedure
-          begin
-            LblCuriosidades.Caption := LCuriosidades;
-          end);
-        end).Start;
-        FVoltas := 0;
-      end;
-    end;
+    FCuriosidades := '!!! Bem-vindo ao HortiSys !!! - O parceiro perfeito para a sua horta.';
+    FProximoTexto := FCuriosidades; // Inicializa o buffer
+    FXPos := PbCuriosidades.Width * 3; //Onde o texto inicia da direita para esquerda
+    Exit;
   end;
+
+  Dec(FXPos, 5);
+
+  // Momento exato em que o texto sumiu da tela à esquerda
+  if FXPos < -PbCuriosidades.Canvas.TextWidth(FCuriosidades) then
+  begin
+    FXPos := PbCuriosidades.Width;
+
+    // Se houver um novo texto vindo da API no "Buffer", trocamos agora!
+    if (FProximoTexto <> EmptyStr) and (FProximoTexto <> FCuriosidades) then
+       FCuriosidades := FProximoTexto;
+
+    Inc(FVoltas);
+
+    if not FBuscaEmAndamento then
+       BuscarNovaCuriosidade;
+  end;
+
+  PbCuriosidades.Invalidate;
 end;
 
 procedure TFrmPrincipal.FormCreate(Sender: TObject);
@@ -161,6 +189,7 @@ end;
 procedure TFrmPrincipal.FormShow(Sender: TObject);
 begin
   ExecutarLetreiro(True);
+  TmrCuriosidade.Enabled := True;
 end;
 
 procedure TFrmPrincipal.LimparPnlDesktop;
@@ -171,6 +200,15 @@ begin
     if (PnlDesktop.Controls[I] is TForm) and
        not (csDestroying in PnlDesktop.Controls[I].ComponentState) then
       PnlDesktop.Controls[I].Free;
+end;
+
+procedure TFrmPrincipal.PbCuriosidadesPaint(Sender: TObject);
+begin
+  PbCuriosidades.Canvas.FillRect(PbCuriosidades.ClientRect);
+  PbCuriosidades.Canvas.Brush.Style := bsClear;
+
+  // Desenha o texto na posição atual (FXPos)
+  PbCuriosidades.Canvas.TextOut(FXPos, 5,  FCuriosidades);
 end;
 
 procedure TFrmPrincipal.SbtnCulturaClick(Sender: TObject);
@@ -194,32 +232,52 @@ procedure TFrmPrincipal.SbtnRelatorioTiposManejoClick(Sender: TObject);
 var
   LFrmRelatorioTipoManejo: TFrmRelatorioTipoManejo;
 begin
-  LFrmRelatorioTipoManejo := TProviderFactory.NewRelatorioTipoManejoView(Self);
-  LFrmRelatorioTipoManejo.CarregarRelatorio('', 'id_tipomanejo');
+  try
+    TmrCuriosidade.Enabled := False;
+    LFrmRelatorioTipoManejo := TProviderFactory.NewRelatorioTipoManejoView(Self);
+    LFrmRelatorioTipoManejo.CarregarRelatorio('', 'id_tipomanejo');
+  finally
+    TmrCuriosidade.Enabled := True;
+  end;
 end;
 
 procedure TFrmPrincipal.SbtnRelatorioCulturaClick(Sender: TObject);
 var
   LFrmRelatorioCultura: TFrmRelatorioCultura;
 begin
-  LFrmRelatorioCultura := TProviderFactory.NewRelatorioCulturaView(Self);
-  LFrmRelatorioCultura.CarregarRelatorio('', 'id_cultura');
+  try
+    TmrCuriosidade.Enabled := False;
+    LFrmRelatorioCultura := TProviderFactory.NewRelatorioCulturaView(Self);
+    LFrmRelatorioCultura.CarregarRelatorio('', 'id_cultura');
+  finally
+    TmrCuriosidade.Enabled := True;
+  end;
 end;
 
 procedure TFrmPrincipal.SbtnRelatorioManejoClick(Sender: TObject);
 var
   LFrmRelatorioManejo: TFrmRelatorioManejo;
 begin
-  LFrmRelatorioManejo := TProviderFactory.NewRelatorioManejoView(Self);
-  LFrmRelatorioManejo.CarregarRelatorio('', 'id_manejo');
+  try
+    TmrCuriosidade.Enabled := False;
+    LFrmRelatorioManejo := TProviderFactory.NewRelatorioManejoView(Self);
+    LFrmRelatorioManejo.CarregarRelatorio('', 'id_manejo');
+  finally
+    TmrCuriosidade.Enabled := True;
+  end;
 end;
 
 procedure TFrmPrincipal.SbtnRelatorioTipoCulturaClick(Sender: TObject);
 var
   LFrmRelatorioTipoCultura: TFrmRelatorioTipoCultura;
 begin
-  LFrmRelatorioTipoCultura := TProviderFactory.NewRelatorioTipoCulturaView(Self);
-  LFrmRelatorioTipoCultura.CarregarRelatorio('', 'id_tipocultura');
+  try
+    TmrCuriosidade.Enabled := False;
+    LFrmRelatorioTipoCultura := TProviderFactory.NewRelatorioTipoCulturaView(Self);
+    LFrmRelatorioTipoCultura.CarregarRelatorio('', 'id_tipocultura');
+  finally
+    TmrCuriosidade.Enabled := True;
+  end;
 end;
 
 procedure TFrmPrincipal.SbtnSairClick(Sender: TObject);

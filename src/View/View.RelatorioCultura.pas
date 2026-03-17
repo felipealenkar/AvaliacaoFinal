@@ -37,6 +37,7 @@ type
     rlbl611: TRLLabel;
     DbTextAtivo: TRLDBText;
     DbImageFoto: TRLDBImage;
+    rlbl7: TRLLabel;
   private
     FCulturaController: TCulturaController;
     function BoolToSimNao(PValor: Boolean): string;

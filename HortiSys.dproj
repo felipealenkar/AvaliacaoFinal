@@ -145,7 +145,6 @@
         <DCCReference Include="src\Factory\Factory.PGConnection.pas"/>
         <DCCReference Include="src\DataModule\DataModule.Icons.pas">
             <Form>DmIcons</Form>
-            <FormType>dfm</FormType>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
         <DCCReference Include="src\Service\Service.Cultura.pas"/>
@@ -153,18 +152,15 @@
         <DCCReference Include="src\Repository\Repository.Cultura.pas"/>
         <DCCReference Include="src\View\View.Manejo.pas">
             <Form>FrmManejo</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\View\View.EditarManejo.pas">
             <Form>FrmEditarManejo</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\Repository\Repository.ApiCultura.pas"/>
         <DCCReference Include="src\Service\Service.ApiCultura.pas"/>
         <DCCReference Include="src\Controller\Controller.ApiCultura.pas"/>
         <DCCReference Include="src\View\View.RelatorioManejo.pas">
             <Form>FrmRelatorioManejo</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\Model\Model.TipoManejo.pas"/>
         <DCCReference Include="src\Repository\Repository.TipoManejo.pas"/>
@@ -175,35 +171,27 @@
         <DCCReference Include="src\Controller\Controller.Manejo.pas"/>
         <DCCReference Include="src\View\View.TipoManejo.pas">
             <Form>FrmTipoManejo</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\View\View.TipoCultura.pas">
             <Form>FrmTipoCultura</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\View\View.RelatorioTipoManejo.pas">
             <Form>FrmRelatorioTipoManejo</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\View\View.RelatorioTipoCultura.pas">
             <Form>FrmRelatorioTipoCultura</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\View\View.Cultura.pas">
             <Form>FrmCultura</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\View\View.EditarCultura.pas">
             <Form>FrmEditarCultura</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\View\View.RelatorioCultura.pas">
             <Form>FrmRelatorioCultura</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="src\View\View.LocalizarCultura.pas">
             <Form>FrmLocalizarCultura</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

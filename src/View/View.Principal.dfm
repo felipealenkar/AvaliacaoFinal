@@ -8088,80 +8088,114 @@
       Color = 14149085
       ParentBackground = False
       TabOrder = 0
-      object SbtnSair: TSpeedButton
+      object PnlBotoes: TPanel
         AlignWithMargins = True
-        Left = 668
+        Left = 464
         Top = 4
-        Width = 117
-        Height = 75
-        Margins.Bottom = 5
+        Width = 321
+        Height = 77
         Align = alRight
-        Caption = 'Sair'
-        ImageIndex = 3
-        ImageName = 'Sair'
-        Images = VimgLTelaPrincipal
-        Flat = True
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = 3093275
-        Font.Height = -21
-        Font.Name = 'Segoe UI'
-        Font.Style = [fsBold]
-        Margin = 5
-        ParentFont = False
-        StyleElements = [seClient, seBorder]
-        OnClick = SbtnSairClick
-        ExplicitLeft = 608
-      end
-      object SbtnMinimizar: TSpeedButton
-        AlignWithMargins = True
-        Left = 480
-        Top = 4
-        Width = 182
-        Height = 75
-        Margins.Bottom = 5
-        Align = alRight
-        Caption = 'Minimizar'
-        ImageIndex = 7
-        ImageName = 'Minimizar'
-        Images = VimgLTelaPrincipal
-        Flat = True
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = 3093275
-        Font.Height = -21
-        Font.Name = 'Segoe UI'
-        Font.Style = [fsBold]
-        Margin = 5
-        ParentFont = False
-        StyleElements = [seClient, seBorder]
-        OnClick = SbtnMinimizarClick
-        ExplicitLeft = 384
-      end
-      object PnlCuriosidades: TPanel
-        Left = 1
-        Top = 1
-        Width = 476
-        Height = 83
-        Align = alClient
         BevelOuter = bvNone
         Color = 14149085
+        DoubleBuffered = True
+        FullRepaint = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clCrimson
+        Font.Height = -33
+        Font.Name = 'Segoe UI'
+        Font.Style = []
         ParentBackground = False
+        ParentDoubleBuffered = False
+        ParentFont = False
         TabOrder = 0
-        object LblCuriosidades: TLabel
+        object SbtnMinimizar: TSpeedButton
           AlignWithMargins = True
-          Left = 4
+          Left = 13
           Top = 3
-          Width = 15
-          Height = 71
-          Margins.Top = 6
-          Alignment = taCenter
-          Color = 14214623
+          Width = 182
+          Height = 69
+          Margins.Bottom = 5
+          Align = alRight
+          Caption = 'Minimizar'
+          ImageIndex = 7
+          ImageName = 'Minimizar'
+          Images = VimgLTelaPrincipal
+          Flat = True
           Font.Charset = DEFAULT_CHARSET
-          Font.Color = clRed
-          Font.Height = -53
+          Font.Color = 3093275
+          Font.Height = -21
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsBold]
+          Margin = 5
+          ParentFont = False
+          StyleElements = [seClient, seBorder]
+          OnClick = SbtnMinimizarClick
+          ExplicitTop = 4
+        end
+        object SbtnSair: TSpeedButton
+          AlignWithMargins = True
+          Left = 201
+          Top = 3
+          Width = 117
+          Height = 69
+          Margins.Bottom = 5
+          Align = alRight
+          Caption = 'Sair'
+          ImageIndex = 3
+          ImageName = 'Sair'
+          Images = VimgLTelaPrincipal
+          Flat = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 3093275
+          Font.Height = -21
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsBold]
+          Margin = 5
+          ParentFont = False
+          StyleElements = [seClient, seBorder]
+          OnClick = SbtnSairClick
+          ExplicitLeft = 608
+          ExplicitTop = 4
+          ExplicitHeight = 75
+        end
+      end
+      object PnlCuriosidades: TPanel
+        AlignWithMargins = True
+        Left = 4
+        Top = 4
+        Width = 454
+        Height = 77
+        Align = alClient
+        Alignment = taRightJustify
+        BevelOuter = bvNone
+        Color = 14149085
+        DoubleBuffered = True
+        FullRepaint = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clCrimson
+        Font.Height = -33
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        ParentBackground = False
+        ParentDoubleBuffered = False
+        ParentFont = False
+        TabOrder = 1
+        object PbCuriosidades: TPaintBox
+          Left = 0
+          Top = 0
+          Width = 454
+          Height = 77
+          Align = alClient
+          Color = 14149085
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clCrimson
+          Font.Height = -47
           Font.Name = 'Segoe UI'
           Font.Style = []
           ParentColor = False
           ParentFont = False
+          OnPaint = PbCuriosidadesPaint
+          ExplicitWidth = 1000
         end
       end
     end
@@ -8245,9 +8279,9 @@
     Top = 689
   end
   object TmrCuriosidade: TTimer
-    Interval = 1
+    Interval = 10
     OnTimer = TmrCuriosidadeTimer
-    Left = 378
-    Top = 25
+    Left = 810
+    Top = 105
   end
 end

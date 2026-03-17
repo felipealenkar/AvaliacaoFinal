@@ -15,7 +15,6 @@ type
     private
     public
       function ObterRespostaDoGemini(PPrompt: string): string;
-      function ObterNomeCientifico(PNomePT: String): string;
       function ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String;
       function ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): String;
       function ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream;
@@ -27,84 +26,6 @@ type
 implementation
 
 { TApiCulturaRepository }
-
-function TCulturaApiRepository.ObterNomeCientifico(PNomePT: String): string;
-var
-  LClient: TRESTClient;
-  LRequest: TRESTRequest;
-  LResponse: TRESTResponse;
-  JSONObj: TJSONObject;
-  LValue: TJSONValue;
-begin
-  var URLBASE_GEMINI: string := 'https://generativelanguage.googleapis.com/v1beta';
-  var KEY_GEMINI: String := ObterChaveGemini;
-  Result := '';
-  LClient := TRESTClient.Create(nil);
-  LRequest := TRESTRequest.Create(nil);
-  LResponse := TRESTResponse.Create(nil);
-  try
-    LClient.BaseURL := URLBASE_GEMINI;
-    LRequest.Client := LClient;
-    LRequest.Response := LResponse;
-    LRequest.Method := rmPOST;
-    LRequest.Resource := 'models/gemini-3.1-flash-lite-preview:generateContent';
-    LRequest.Timeout := 10000;
-
-    LRequest.AddParameter('key', KEY_GEMINI, pkQUERY);
-    LRequest.AddBody(
-      '{' +
-      '  "contents": [' +
-      '    {' +
-      '      "parts": [' +
-      '        {' +
-      '          "text": "Você é um botânico especializado em taxonomia vegetal. ' +
-      '                   Receba o nome popular de uma planta em português e retorne ' +
-      '                   apenas o nome científico da planta aceito atualmente para: ' + PNomePT + '. ' +
-      '                   Não use markdown, não use negrito, apenas o texto puro."' +
-      '        }' +
-      '      ]' +
-      '    }' +
-      '  ]' +
-      '}',
-      ctAPPLICATION_JSON
-    );
-
-    try
-      LRequest.Execute;
-    except
-      on E: Exception do
-        raise Exception.Create('Falha de conexão com a IA: ' + E.Message);
-    end;
-
-    if LResponse.StatusCode <> 200 then
-      raise Exception.CreateFmt('Erro na API Gemini (%d): %s', [LResponse.StatusCode, LResponse.Content]);
-
-    LValue := TJSONObject.ParseJSONValue(LResponse.Content);
-    if Assigned(LValue) and (LValue is TJSONObject) then
-    begin
-      JSONObj := TJSONObject(LValue);
-      try
-        try
-          Result := JSONObj.GetValue<TJSONArray>('candidates')
-                           .Items[0].GetValue<TJSONObject>('content')
-                           .GetValue<TJSONArray>('parts')
-                           .Items[0].GetValue<string>('text').Trim;
-
-          // Limpeza extra: o Gemini as vezes coloca caracteres de controle ou aspas
-          Result := Result.Replace('"', '').Replace('*', '');
-        except
-          raise Exception.Create('A IA retornou um formato inesperado.');
-        end;
-      finally
-        JSONObj.Free;
-      end;
-    end;
-  finally
-    LResponse.Free;
-    LRequest.Free;
-    LClient.Free;
-  end;
-end;
 
 function TCulturaApiRepository.ObterRespostaDoGemini(PPrompt: String): string;
 var
@@ -126,7 +47,9 @@ begin
     LRequest.Response := LResponse;
     LRequest.Method := rmPOST;
     LRequest.Resource := 'models/gemini-3.1-flash-lite-preview:generateContent';
-    LRequest.Timeout := 10000;
+
+    LClient.ConnectTimeout := 5000;
+    LRequest.ReadTimeout := 10000;
 
     LRequest.AddParameter('key', KEY_GEMINI, pkQUERY);
     LRequest.AddBody(

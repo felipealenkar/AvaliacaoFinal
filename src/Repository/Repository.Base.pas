@@ -9,6 +9,9 @@ uses
   FireDAC.Stan.Def, FireDAC.DApt, FireDAC.VCLUI.Wait, FireDAC.Stan.Async, FireDAC.Comp.UI;
 
 type
+  EErroConexao = class(Exception);
+  EExecSQL = class(Exception);
+
   TBaseRepository = class
   private
     public
@@ -45,7 +48,7 @@ begin
     on E:Exception do
     begin
       LConnection.Free;
-      raise Exception.Create(Format('Erro de conexão com o banco de dados "%s"', [TDBStart.NomeDatabase])
+      raise EErroConexao.Create(Format('Erro de conexão com o banco de dados "%s"', [TDBStart.NomeDatabase])
                             + sLineBreak + sLineBreak + E.ToString);
     end;
   end;
@@ -61,8 +64,11 @@ begin
       LConnection := CriarConexao(PDatabase);
       LConnection.ExecSQL(PSQL);
     except
+      on E:EErroConexao do
+        raise E;
+
       on E:Exception do
-        raise Exception.Create('Erro na execução do SQL'
+        raise EExecSQL.Create('Erro na execução do SQL'
                               + sLineBreak + sLineBreak + E.ToString);
     end;
   finally

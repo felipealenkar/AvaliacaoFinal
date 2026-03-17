@@ -54,9 +54,14 @@ end;
 
 function TCulturaApiService.ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
 var
-  LNome, LUrlImagem: string;
+  LNome, LPrompt, LUrlImagem: string;
 begin
-  LNome := FCulturaApiRepository.ObterNomeCientifico(PNome);
+  LPrompt := 'Você é um botânico especializado em taxonomia vegetal. ' +
+             'Receba o nome popular de uma planta em português e retorne ' +
+             'apenas o nome científico da planta aceito atualmente para: ' + PNome + '. ' +
+             'Não use markdown, não use negrito, apenas o texto puro.';
+
+  LNome := FCulturaApiRepository.ObterRespostaDoGemini(LPrompt);
   //Showmessage(LNome);
   if PNomeApi = 'GBIF' then
     LUrlImagem := FCulturaApiRepository.ObterUrlFotoPorApiGBIF(LNome);

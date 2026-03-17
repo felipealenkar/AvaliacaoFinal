@@ -46,6 +46,7 @@ type
     procedure EscolherChaveGemini;
     procedure SbtnTrocarchaveGeminiClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     FCulturaController: TCulturaController;
     FTipoCulturaController: TTipoCulturaController;
@@ -57,6 +58,7 @@ type
     procedure CarregarTiposCultura;
     procedure CarregarImagemPorArquivo;
     procedure CarregarImagemPorMemoryStream(PFoto: TMemoryStream);
+    procedure CarregarImagemPorApi;
     procedure ModoInsercao;
     procedure ModoEdicao(PId: Integer);
     procedure Salvar;
@@ -95,6 +97,66 @@ begin
   finally
     LCultura.Free;
   end;
+end;
+
+procedure TFrmEditarCultura.CarregarImagemPorApi;
+var
+  LDescricao: string;
+begin
+  LDescricao := EdtDescricao.Text;
+  SbtnImgPorApi.Enabled := False;
+  ActIndFoto.Visible := True;
+  ActIndFoto.Animate := True;
+
+  if Trim(LDescricao) = EmptyStr then
+  begin
+    MessageBox(0, PChar('!!!Digite o nome da planta!!!.'),
+                        'Buscar na web', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    Exit;
+  end;
+
+  TThread.CreateAnonymousThread(
+  procedure
+  var
+    LImgCultura: TMemoryStream;
+  begin
+    LImgCultura := nil;
+    try
+      try
+        LImgCultura := FCulturaApiController.ObterUrlFotoPorApi(LDescricao, RgAPIs.Items.Strings[RgAPIs.ItemIndex]);
+        TThread.Synchronize(TThread.Current,
+        procedure
+        begin
+            if Assigned(LImgCultura) then
+              CarregarImagemPorMemoryStream(LImgCultura);
+
+          ActIndFoto.Animate := False;
+          ActIndFoto.Visible := False;
+        end);
+      Except
+        On E:Exception do
+        begin
+          TThread.Synchronize(TThread.Current,
+          procedure
+          begin
+               MessageBox(0, PChar('Falha ao buscar imagem: ' + E.Message),
+                          'Erro de Conexão', MB_OK or MB_ICONERROR or MB_TASKMODAL);
+          end);
+        end;
+      end;
+    finally
+      if Assigned(LImgCultura) then
+        LImgCultura.Free;
+
+      TThread.Synchronize(TThread.Current,
+      procedure
+      begin
+        ActIndFoto.Animate := False;
+        ActIndFoto.Visible := False;
+        SbtnImgPorApi.Enabled := True;
+      end);
+    end;
+  end).Start;
 end;
 
 procedure TFrmEditarCultura.CarregarImagemPorArquivo;
@@ -190,6 +252,12 @@ begin
   end;
 end;
 
+procedure TFrmEditarCultura.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  if ActIndFoto.Animate then
+    CanClose := False;
+end;
+
 procedure TFrmEditarCultura.FormCreate(Sender: TObject);
 begin
   ActIndFoto.Enabled := False;
@@ -256,38 +324,7 @@ end;
 
 procedure TFrmEditarCultura.SbtnImgPorApiClick(Sender: TObject);
 begin
-  ActIndFoto.Visible := True;
-  ActIndFoto.Animate := True;
-
-    TThread.CreateAnonymousThread(
-  procedure
-  begin
-    var LImgCultura: TMemoryStream;
-    var LDescricao: string;
-
-    LDescricao := EdtDescricao.Text;
-
-    if Trim(LDescricao) = '' then
-    begin
-      MessageBox(0, PChar('!!!Digite o nome da planta!!!.'),
-                          'Buscar na web', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
-      Exit;
-    end;
-
-    LImgCultura := FCulturaApiController.ObterUrlFotoPorApi(LDescricao, RgAPIs.Items.Strings[RgAPIs.ItemIndex]);
-    TThread.Synchronize(TThread.Current,
-    procedure
-    begin
-      try
-        CarregarImagemPorMemoryStream(LImgCultura);
-      finally
-        LImgCultura.Free;
-      end;
-
-      ActIndFoto.Animate := False;
-      ActIndFoto.Visible := False;
-    end);
-  end).Start;
+  CarregarImagemPorApi;
 end;
 
 procedure TFrmEditarCultura.SbtnLimparImgClick(Sender: TObject);

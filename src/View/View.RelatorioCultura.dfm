@@ -3403,6 +3403,12 @@
         ParentFont = False
         Text = ''
       end
+      object rlbl7: TRLLabel
+        Left = 512
+        Top = 80
+        Width = 28
+        Height = 16
+      end
     end
     object rldrw2: TRLDraw
       Left = 41
