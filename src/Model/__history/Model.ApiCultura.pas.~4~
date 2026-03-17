@@ -1,0 +1,18 @@
+unit Model.ApiCultura;
+
+interface
+
+type
+  TCulturaApi = class
+      FIdGemini: Integer;
+      FChaveGemini: string;
+    private
+      property IdGemini: Integer read FIdGemini write FIdGemini;
+      property FChaveGemini: String read FChaveGemini write FChaveGemini;
+    public
+
+  end;
+
+implementation
+
+end.

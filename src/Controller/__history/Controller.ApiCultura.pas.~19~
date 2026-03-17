@@ -1,0 +1,66 @@
+unit Controller.ApiCultura;
+
+interface
+
+uses
+  Service.ApiCultura,
+  System.SysUtils,
+  System.Generics.Collections,
+  System.Classes;
+
+type
+  TCulturaApiController = class
+  private
+    FCulturaApiService: TCulturaApiService;
+  public
+    constructor Create(PCulturaApiService: TCulturaApiService);
+    destructor Destroy; override;
+  function ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
+    procedure AtualizarChaveGemini(PChave: string; PTipo: Boolean);
+    function ObterChaveGemini: String;
+    function VerificarTipoChave: Boolean;
+    function ObterCuriosidade: string;
+  end;
+
+implementation
+
+function TCulturaApiController.ObterChaveGemini: String;
+begin
+  Result := FCulturaApiService.ObterChaveGemini;
+end;
+
+function TCulturaApiController.ObterCuriosidade: string;
+begin
+  Result := FCulturaApiService.ObterCuriosidade;
+end;
+
+{ TCulturaService }
+
+function TCulturaApiController.ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
+begin
+  Result := FCulturaApiService.ObterUrlFotoPorApi(PNome, PNomeApi);
+end;
+
+function TCulturaApiController.VerificarTipoChave: Boolean;
+begin
+  Result := FCulturaApiService.VerificarTipoChave;
+end;
+
+procedure TCulturaApiController.AtualizarChaveGemini(PChave: string; PTipo: Boolean);
+begin
+  FCulturaApiService.AtualizarChaveGemini(PChave, PTipo);
+end;
+
+constructor TCulturaApiController.Create(PCulturaApiService: TCulturaApiService);
+begin
+  inherited Create;
+  FCulturaApiService := PCulturaApiService;
+end;
+
+destructor TCulturaApiController.Destroy;
+begin
+  FCulturaApiService.Free;
+  inherited;
+end;
+
+end.

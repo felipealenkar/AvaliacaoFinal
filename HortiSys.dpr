@@ -63,16 +63,13 @@ begin
 
       LDBStartController.IniciarAmbiente;
       Application.CreateForm(TDmIcons, DmIcons);
-      Application.CreateForm(TFrmPrincipal, FrmPrincipal);
-      Application.Run;
+  Application.CreateForm(TFrmPrincipal, FrmPrincipal);
+  Application.Run;
     except
-      on E: EErroConexao do
-        MessageBox(0, PChar(E.ToString), 'HortiSys', MB_OK or MB_ICONERROR or MB_TASKMODAL);
       on E:Exception do
         MessageBox(0, PChar(E.ToString), 'HortiSys', MB_OK or MB_ICONERROR or MB_TASKMODAL);
     end;
   finally
     LDBStartController.Free;
-    FrmPrincipal.Free;
   end;
 end.

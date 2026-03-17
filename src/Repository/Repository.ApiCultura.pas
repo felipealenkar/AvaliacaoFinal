@@ -18,7 +18,7 @@ type
       function ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String;
       function ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): String;
       function ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream;
-      procedure AtualizarChaveGemini(PChave: string; PTipo: Boolean);
+      procedure AtualizarChaveGemini(PChave: string);
       function ObterChaveGemini: String;
       function VerificarTipoChave: Boolean;
   end;
@@ -243,7 +243,7 @@ begin
   end;
 end;
 
-procedure TCulturaApiRepository.AtualizarChaveGemini(PChave: string; PTipo: Boolean);
+procedure TCulturaApiRepository.AtualizarChaveGemini(PChave: string);
 var
   LQuery: TFDQuery;
   LConnection: TFDConnection;
@@ -256,12 +256,10 @@ begin
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('UPDATE %s.apicultura ' +
-                              'SET chave_gemini = :PChave, ' +
-                              '    chave_personalizada = :PTipo ' +
+                              'SET chave_gemini = :PChave ' +
                               'WHERE id_gemini = 1', [TDBStart.NomeSchema]);
 
                             LQuery.ParamByName('PChave').AsString := PChave;
-                            LQuery.ParamByName('PTipo').AsBoolean := PTipo;
                             LQuery.ExecSQL;
       LQuery.ExecSQL;
     except

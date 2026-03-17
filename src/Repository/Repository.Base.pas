@@ -17,7 +17,6 @@ type
     public
       function CriarConexao(const PDatabase: String): TFDConnection;
       procedure ExecSQL(const PDatabase, PSQL: String);
-      function OpenSQL(const PDatabase, PSQL: String): TFDQuery;
   end;
 
 
@@ -65,7 +64,7 @@ begin
       LConnection.ExecSQL(PSQL);
     except
       on E:EErroConexao do
-        raise E;
+        raise;
 
       on E:Exception do
         raise EExecSQL.Create('Erro na execução do SQL'
@@ -73,32 +72,6 @@ begin
     end;
   finally
     LConnection.Free;
-  end;
-end;
-
-function TBaseRepository.OpenSQL(const PDatabase, PSQL: String): TFDQuery;
-var
-  LQuery: TFDQuery;
-  LConnection: TFDConnection;
-begin
-  LQuery := nil;
-  LConnection := nil;
-  try
-    LConnection := CriarConexao(PDatabase);
-    LQuery := TFDQuery.Create(nil);
-
-    Result := LQuery;
-    Result.Connection := LConnection;
-    Result.SQL.Text := PSQL;
-    Result.Open;
-  except
-    on E:Exception do
-    begin
-      LQuery.Free;
-      LConnection.Free;
-      raise Exception.Create('Erro na execução do OpenSQL'
-                              + sLineBreak + sLineBreak + E.ToString);
-    end;
   end;
 end;
 end.

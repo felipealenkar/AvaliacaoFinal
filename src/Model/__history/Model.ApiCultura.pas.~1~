@@ -1,0 +1,14 @@
+unit Model.ApiCultura;
+
+interface
+
+type
+  TCulturaApi = class
+
+  end;
+    private
+    public
+
+implementation
+
+end.

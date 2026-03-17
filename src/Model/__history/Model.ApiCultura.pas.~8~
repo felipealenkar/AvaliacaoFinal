@@ -1,0 +1,26 @@
+unit Model.ApiCultura;
+
+interface
+
+uses
+  System.SysUtils, System.Classes;
+
+type
+  TCulturaApi = class
+    private
+      FIdGemini: Integer;
+      FChaveGemini: string;
+      FPrompt: string;
+      FNomeCientifico: string;
+      FFoto: TMemoryStream;
+
+    public
+      property IdGemini: Integer read FIdGemini write FIdGemini;
+      property ChaveGemini: String read FChaveGemini write FChaveGemini;
+    public
+
+  end;
+
+implementation
+
+end.

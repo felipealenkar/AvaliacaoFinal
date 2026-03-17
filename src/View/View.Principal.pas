@@ -40,6 +40,8 @@ type
     PnlBotoes: TPanel;
     PnlCuriosidades: TPanel;
     PbCuriosidades: TPaintBox;
+    PnlChaveGemini: TPanel;
+    SbtnConfigurarChaveGemini: TSpeedButton;
     procedure tmrDataHoraTimer(Sender: TObject);
     procedure SbtnSairClick(Sender: TObject);
     procedure SbtnTipoCulturaClick(Sender: TObject);
@@ -56,6 +58,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure PbCuriosidadesPaint(Sender: TObject);
+    procedure SbtnConfigurarChaveGeminiClick(Sender: TObject);
   private
     FCulturaApiController: TCulturaApiController;
     FVoltas: Integer;
@@ -70,6 +73,7 @@ type
     procedure ReceberComando(var Msg: TMessage); message WM_USER + 1234;
     procedure AtualizarBotoes;
     procedure ExecutarLetreiro(PPrimeiraExecucao: Boolean);
+    procedure InserirChaveGemini;
     { Private declarations }
   public
     { Public declarations }
@@ -192,6 +196,31 @@ begin
   TmrCuriosidade.Enabled := True;
 end;
 
+procedure TFrmPrincipal.InserirChaveGemini;
+var
+  LChave: String;
+  LResposta: Boolean;
+begin
+  begin
+    repeat
+    LResposta := InputQuery('Digite a chave:', 'Chave Gemini', LChave);
+    if LResposta then
+    try
+      if Trim(LChave) <> EmptyStr then
+      begin
+        FCulturaApiController.AtualizarChaveGemini(LChave);
+        MessageBox(0, PChar('A chave Gemini foi definida'),
+                        'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+        Exit;
+      end;
+    except
+      on E: Exception do
+        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    end;
+  until not LResposta;
+  end;
+end;
+
 procedure TFrmPrincipal.LimparPnlDesktop;
 var
   I: Integer;
@@ -209,6 +238,11 @@ begin
 
   // Desenha o texto na posição atual (FXPos)
   PbCuriosidades.Canvas.TextOut(FXPos, 5,  FCuriosidades);
+end;
+
+procedure TFrmPrincipal.SbtnConfigurarChaveGeminiClick(Sender: TObject);
+begin
+  InserirChaveGemini;
 end;
 
 procedure TFrmPrincipal.SbtnCulturaClick(Sender: TObject);

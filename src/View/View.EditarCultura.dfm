@@ -4,8 +4,8 @@ object FrmEditarCultura: TFrmEditarCultura
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Cadastros > Cultura > Preencher'
-  ClientHeight = 529
-  ClientWidth = 414
+  ClientHeight = 497
+  ClientWidth = 428
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -2135,12 +2135,14 @@ object FrmEditarCultura: TFrmEditarCultura
   object PnlEditarCultura: TPanel
     Left = 0
     Top = 0
-    Width = 414
-    Height = 529
+    Width = 428
+    Height = 497
     Align = alClient
     Color = 14214623
     ParentBackground = False
     TabOrder = 0
+    ExplicitWidth = 414
+    ExplicitHeight = 529
     object LblTipoCultura: TLabel
       Left = 217
       Top = 15
@@ -2176,8 +2178,8 @@ object FrmEditarCultura: TFrmEditarCultura
     object ImgFoto: TImage
       Left = 171
       Top = 122
-      Width = 220
-      Height = 220
+      Width = 233
+      Height = 233
       Center = True
       Proportional = True
       Stretch = True
@@ -2211,8 +2213,8 @@ object FrmEditarCultura: TFrmEditarCultura
     end
     object SbtnImgPorApi: TSpeedButton
       AlignWithMargins = True
-      Left = 24
-      Top = 350
+      Left = 20
+      Top = 310
       Width = 135
       Height = 45
       Margins.Left = 1
@@ -2264,33 +2266,6 @@ object FrmEditarCultura: TFrmEditarCultura
       StyleElements = [seClient, seBorder]
       OnClick = SbtnLimparImgClick
     end
-    object SbtnTrocarchaveGemini: TSpeedButton
-      AlignWithMargins = True
-      Left = 189
-      Top = 350
-      Width = 202
-      Height = 45
-      Margins.Left = 1
-      Margins.Top = 0
-      Margins.Right = 0
-      Margins.Bottom = 0
-      BiDiMode = bdLeftToRight
-      Caption = 'Usar minha chave Gemini'
-      ImageIndex = 3
-      ImageName = 'Login'
-      Images = VimgLCulturaMenor
-      Flat = True
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = 3093275
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = [fsBold]
-      Margin = 0
-      ParentFont = False
-      ParentBiDiMode = False
-      StyleElements = [seClient, seBorder]
-      OnClick = SbtnTrocarchaveGeminiClick
-    end
     object EdtDescricao: TEdit
       Left = 20
       Top = 76
@@ -2338,8 +2313,8 @@ object FrmEditarCultura: TFrmEditarCultura
     object FlwPnlCultura: TFlowPanel
       AlignWithMargins = True
       Left = 23
-      Top = 400
-      Width = 368
+      Top = 368
+      Width = 382
       Height = 117
       Margins.Left = 22
       Margins.Right = 22
@@ -2348,16 +2323,18 @@ object FrmEditarCultura: TFrmEditarCultura
       Color = 14214623
       ParentBackground = False
       TabOrder = 5
+      ExplicitTop = 400
+      ExplicitWidth = 368
       DesignSize = (
-        368
+        382
         117)
-      object SpeedButton1: TSpeedButton
+      object SbtnAjuda: TSpeedButton
         AlignWithMargins = True
-        Left = 18
+        Left = 22
         Top = 11
         Width = 100
         Height = 100
-        Margins.Left = 17
+        Margins.Left = 21
         Margins.Top = 10
         Margins.Right = 0
         Margins.Bottom = 5
@@ -2376,11 +2353,11 @@ object FrmEditarCultura: TFrmEditarCultura
         Margin = 5
         ParentFont = False
         StyleElements = [seClient, seBorder]
-        OnClick = SpeedButton1Click
+        OnClick = SbtnAjudaClick
       end
       object SbtnSalvar: TSpeedButton
         AlignWithMargins = True
-        Left = 135
+        Left = 139
         Top = 11
         Width = 99
         Height = 100
@@ -2407,7 +2384,7 @@ object FrmEditarCultura: TFrmEditarCultura
       end
       object SbtnSair: TSpeedButton
         AlignWithMargins = True
-        Left = 251
+        Left = 255
         Top = 11
         Width = 100
         Height = 100
@@ -2435,7 +2412,7 @@ object FrmEditarCultura: TFrmEditarCultura
     end
     object RgAPIs: TRadioGroup
       Left = 20
-      Top = 242
+      Top = 218
       Width = 135
       Height = 78
       Caption = 'APIs de busca'

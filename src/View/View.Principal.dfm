@@ -5,7 +5,7 @@
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'HortiSys - Tela principal'
-  ClientHeight = 887
+  ClientHeight = 1009
   ClientWidth = 1080
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
@@ -7781,16 +7781,17 @@
     Left = 0
     Top = 0
     Width = 289
-    Height = 887
+    Height = 1009
     Margins.Left = 0
     Align = alLeft
     Color = 14149085
     ParentBackground = False
     TabOrder = 0
+    ExplicitHeight = 887
     object LblDataHora: TLabel
       AlignWithMargins = True
       Left = 4
-      Top = 858
+      Top = 980
       Width = 281
       Height = 25
       Align = alBottom
@@ -7802,6 +7803,7 @@
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
+      ExplicitTop = 858
       ExplicitWidth = 180
     end
     object PnlRelatórios: TPanel
@@ -8071,14 +8073,50 @@
         ExplicitWidth = 249
       end
     end
+    object PnlChaveGemini: TPanel
+      Left = 1
+      Top = 852
+      Width = 287
+      Height = 88
+      Align = alTop
+      Color = 14214623
+      ParentBackground = False
+      TabOrder = 2
+      object SbtnConfigurarChaveGemini: TSpeedButton
+        AlignWithMargins = True
+        Left = 4
+        Top = 6
+        Width = 279
+        Height = 75
+        Margins.Top = 5
+        Margins.Bottom = 2
+        Align = alTop
+        Caption = 'Inserir chave Gemini'
+        ImageIndex = 8
+        ImageName = 'Login'
+        Images = VimgLTelaPrincipal
+        Flat = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 3093275
+        Font.Height = -21
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        Margin = 5
+        ParentFont = False
+        StyleElements = [seClient, seBorder]
+        OnClick = SbtnConfigurarChaveGeminiClick
+        ExplicitLeft = 3
+      end
+    end
   end
   object PnlPrincipal: TPanel
     Left = 289
     Top = 0
     Width = 791
-    Height = 887
+    Height = 1009
     Align = alClient
     TabOrder = 1
+    ExplicitHeight = 887
     object PnlTopo: TPanel
       Left = 1
       Top = 1
@@ -8203,15 +8241,16 @@
       Left = 1
       Top = 86
       Width = 789
-      Height = 800
+      Height = 922
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
+      ExplicitHeight = 800
       object VimgLogo: TVirtualImage
         Left = 0
         Top = 0
         Width = 789
-        Height = 800
+        Height = 922
         Align = alClient
         ImageCollection = DmIcons.ImgCltIcons
         ImageWidth = 0
@@ -8271,6 +8310,11 @@
         CollectionIndex = 17
         CollectionName = 'Minimizar'
         Name = 'Minimizar'
+      end
+      item
+        CollectionIndex = 18
+        CollectionName = 'Login'
+        Name = 'Login'
       end>
     ImageCollection = DmIcons.ImgCltIcons
     Width = 60

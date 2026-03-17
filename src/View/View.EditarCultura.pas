@@ -27,13 +27,12 @@ type
     DlgOpenPicImg: TOpenPictureDialog;
     VimgLCulturaMenor: TVirtualImageList;
     ImgFoto: TImage;
-    SpeedButton1: TSpeedButton;
+    SbtnAjuda: TSpeedButton;
     SbtnSalvar: TSpeedButton;
     SbtnSair: TSpeedButton;
     SbtnAbrirImg: TSpeedButton;
     SbtnImgPorApi: TSpeedButton;
     SbtnLimparImg: TSpeedButton;
-    SbtnTrocarchaveGemini: TSpeedButton;
     RgAPIs: TRadioGroup;
     ActIndFoto: TActivityIndicator;
     procedure SbtnSalvarClick(Sender: TObject);
@@ -42,9 +41,7 @@ type
     procedure SbtnLimparImgClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure SbtnImgPorApiClick(Sender: TObject);
-    procedure SpeedButton1Click(Sender: TObject);
-    procedure EscolherChaveGemini;
-    procedure SbtnTrocarchaveGeminiClick(Sender: TObject);
+    procedure SbtnAjudaClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
@@ -223,35 +220,6 @@ begin
   inherited;
 end;
 
-procedure TFrmEditarCultura.EscolherChaveGemini;
-var
-  LChave: String;
-  LResposta: Boolean;
-begin
-  begin
-    repeat
-    LResposta := InputQuery('Digite a chave:', 'Chave Gemini', LChave);
-    if LResposta then
-    try
-      if Trim(LChave) <> '' then
-      begin
-        FCulturaApiController.AtualizarChaveGemini(LChave, True);
-        MessageBox(0, PChar('A chave personalizada foi definida'),
-                        'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
-        Exit;
-      end;
-    except
-      on E: Exception do
-        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
-    end;
-  until not LResposta;
-
-  FCulturaApiController.AtualizarChaveGemini('AIzaSyDPdAyuuvTwzMgghmZFoYvYv0jSbhEZBbk', False);
-  MessageBox(0, PChar('A chave padrão foi definida'),
-                      'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
-  end;
-end;
-
 procedure TFrmEditarCultura.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   if ActIndFoto.Animate then
@@ -342,16 +310,11 @@ begin
   Salvar;
 end;
 
-procedure TFrmEditarCultura.SbtnTrocarchaveGeminiClick(Sender: TObject);
-begin
-  EscolherChaveGemini;
-end;
-
-procedure TFrmEditarCultura.SpeedButton1Click(Sender: TObject);
+procedure TFrmEditarCultura.SbtnAjudaClick(Sender: TObject);
 begin
   MessageBox(0, PChar('!!!Ao clicar no botão "Buscar na web" o sistema consultará na web para obter a imagem.' + sLineBreak +
                      'A consulta é inteligente e na maioria das vezes vai funcionar mesmo com erros de português.' + sLineBreak + sLineBreak +
-                     'A chave do Gemini é minha, porém se bloquear pode se utilizar qualquer chave, basta marcar a opção "Usar minha chave Gemini".'),
+                     'É necessário configurar uma chave Gemini na tela principal clicando no botão "Inserir chave Gemini".'),
                         'Ajuda', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
 end;
 end.
