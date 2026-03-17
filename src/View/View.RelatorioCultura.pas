@@ -101,13 +101,15 @@ begin
 
         var LFotoTemp := FCulturaController.ObterPorId(LLista[i].IdCultura);
         var LBitmapTemp: TBitmap;
+        var LIdFotoDoDataModule: Integer;
         try
           LFotoTemp.Foto.Position := 0;
           if Assigned(LFotoTemp.Foto) and (LFotoTemp.Foto.Size > 0) then
             TBlobField(LDFMTableCultura.FieldByName('foto')).LoadFromStream(LFotoTemp.Foto)
          else
           begin
-            LBitmapTemp := DmIcons.ImgCltIcons.GetBitmap(13, DbImageFoto.Width, DbImageFoto.Height);
+            LIdFotoDoDataModule := DmIcons.ImgCltIcons.GetIndexByName('SemFoto');
+            LBitmapTemp := DmIcons.ImgCltIcons.GetBitmap(LIdFotoDoDataModule, DbImageFoto.Width, DbImageFoto.Height);
             if Assigned(LBitmapTemp) then
             try
               var LStreamPadrao := TMemoryStream.Create;

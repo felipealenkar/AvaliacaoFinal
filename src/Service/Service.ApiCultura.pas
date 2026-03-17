@@ -3,7 +3,7 @@ unit Service.ApiCultura;
 interface
 
 uses
-Vcl.Dialogs,
+  Vcl.Dialogs, Model.ApiCultura,
   Repository.ApiCultura,
   System.SysUtils,
   System.Generics.Collections,
@@ -19,23 +19,28 @@ type
 
     function ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
     procedure AtualizarChaveGemini(PChave: string);
+    procedure AtualizarChaveTrefle(PChave: string);
     function ObterChaveGemini: String;
     function ObterCuriosidade: string;
-    function VerificarTipoChave: Boolean;
   end;
 
 implementation
 
 function TCulturaApiService.ObterChaveGemini: String;
+var
+  LCulturaApi: TCulturaApi;
 begin
-  Result := FCulturaApiRepository.ObterChaveGemini;
+  LCulturaApi := FCulturaApiRepository.ObterChaves;
+  Result := LCulturaApi.ChaveGemini;
+  LCulturaApi.Free;
 end;
 
 function TCulturaApiService.ObterCuriosidade: string;
 var
-  LPrompt: string;
+  LCulturaApi: TCulturaApi;
 begin
-  LPrompt := 'Aja como um bot botânico especializado. Forneça uma curiosidade única, ' +
+  LCulturaApi := FCulturaApiRepository.ObterChaves;
+  LCulturaApi.Prompt := 'Aja como um bot botânico especializado. Forneça uma curiosidade única, ' +
              'curta e impactante sobre uma planta (escolha entre: horta, pomar, medicinal ' + 'ou decorativa).' +
              ' ' +
              'REGRAS ESTRITAS DE FORMATO: ' +
@@ -49,39 +54,53 @@ begin
              'outros insetos devido ao seu forte aroma de mentol. ' +
              'Não use markdown, não use negrito, apenas o texto puro.';
 
-  Result := FCulturaApiRepository.ObterRespostaDoGemini(LPrompt);
+  Result := FCulturaApiRepository.ObterRespostaDoGemini(LCulturaApi);
+  LCulturaApi.Free;
 end;
 
 function TCulturaApiService.ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
 var
-  LNome, LPrompt, LUrlImagem: string;
+  LNome, LUrlImagem: string;
+  LCulturaApi: TCulturaApi;
 begin
-  LPrompt := 'Você é um botânico especializado em taxonomia vegetal. ' +
+  LCulturaApi := FCulturaApiRepository.ObterChaves;
+  LCulturaApi.Prompt := 'Você é um botânico especializado em taxonomia vegetal. ' +
              'Receba o nome popular de uma planta em português e retorne ' +
              'apenas o nome científico da planta aceito atualmente para: ' + PNome + '. ' +
              'Não use markdown, não use negrito, apenas o texto puro.';
 
-  LNome := FCulturaApiRepository.ObterRespostaDoGemini(LPrompt);
+  LCulturaApi.NomeCientifico := FCulturaApiRepository.ObterRespostaDoGemini(LCulturaApi);
   //Showmessage(LNome);
-  if PNomeApi = 'GBIF' then
-    LUrlImagem := FCulturaApiRepository.ObterUrlFotoPorApiGBIF(LNome);
+  if PNomeApi = 'GBIF (Sem chave)' then
+    LUrlImagem := FCulturaApiRepository.ObterUrlFotoPorApiGBIF(LCulturaApi);
   if PNomeApi = 'Trefle' then
-    LUrlImagem := FCulturaApiRepository.ObterUrlFotoPorApiTrefle(LNome);
+    LUrlImagem := FCulturaApiRepository.ObterUrlFotoPorApiTrefle(LCulturaApi);
   //Showmessage(LUrlImagem);
    if LUrlImagem.Trim.IsEmpty then
      raise Exception.CreateFmt('A planta "%s" (%s) foi localizada, mas não possui foto disponível.', [PNome, LNome]);
 
   Result := FCulturaApiRepository.ObterImagemComTNetHttp(LUrlImagem);
-end;
-
-function TCulturaApiService.VerificarTipoChave: Boolean;
-begin
-  Result := FCulturaApiRepository.VerificarTipoChave;
+  LCulturaApi.Free;
 end;
 
 procedure TCulturaApiService.AtualizarChaveGemini(PChave: string);
+var
+  LCulturaApi: TCulturaApi;
 begin
-  FCulturaApiRepository.AtualizarChaveGemini(PChave);
+  LCulturaApi := FCulturaApiRepository.ObterChaves;
+  LCulturaApi.ChaveGemini := PChave;
+  FCulturaApiRepository.AtualizarChaves(LCulturaApi);
+  LCulturaApi.Free;
+end;
+
+procedure TCulturaApiService.AtualizarChaveTrefle(PChave: string);
+var
+  LCulturaApi: TCulturaApi;
+begin
+  LCulturaApi := FCulturaApiRepository.ObterChaves;
+  LCulturaApi.ChaveTrefle := PChave;
+  FCulturaApiRepository.AtualizarChaves(LCulturaApi);
+  LCulturaApi.Free;
 end;
 
 { TCulturaService }

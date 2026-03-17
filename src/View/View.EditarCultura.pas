@@ -165,6 +165,7 @@ end;
 procedure TFrmEditarCultura.CarregarImagemPorMemoryStream(PFoto: TMemoryStream);
 var
   LImgCultura: TBitmap;
+  IdFotoDoDataModule: Integer;
 begin
   LImgCultura := nil;
   try
@@ -175,7 +176,8 @@ begin
       end
       else
       begin
-        LImgCultura := DmIcons.ImgCltIcons.GetBitmap(13, ImgFoto.Width, ImgFoto.Height);
+        IdFotoDoDataModule := DmIcons.ImgCltIcons.GetIndexByName('SemFoto');
+        LImgCultura := DmIcons.ImgCltIcons.GetBitmap(IdFotoDoDataModule, ImgFoto.Width, ImgFoto.Height);
         ImgFoto.Picture.Bitmap := LImgCultura;
       end;
   finally
@@ -314,7 +316,7 @@ procedure TFrmEditarCultura.SbtnAjudaClick(Sender: TObject);
 begin
   MessageBox(0, PChar('!!!Ao clicar no botão "Buscar na web" o sistema consultará na web para obter a imagem.' + sLineBreak +
                      'A consulta é inteligente e na maioria das vezes vai funcionar mesmo com erros de português.' + sLineBreak + sLineBreak +
-                     'É necessário configurar uma chave Gemini na tela principal clicando no botão "Inserir chave Gemini".'),
+                     'É necessário configurar uma chave Gemini na tela principal clicando no botão "Inserir chaves APIs".'),
                         'Ajuda', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
 end;
 end.

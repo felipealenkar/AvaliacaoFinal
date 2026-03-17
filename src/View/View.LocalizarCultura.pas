@@ -86,6 +86,7 @@ procedure TFrmLocalizarCultura.CarregarFotoCultura(PIdCultura: Integer);
 var
   LCultura: TCultura;
   LVimgCultura: TBitmap;
+  LIdFotoDoDataModule: Integer;
 begin
   ImgFoto.Picture := nil;
   LVimgCultura := nil;
@@ -98,7 +99,8 @@ begin
     end
     else
     begin
-      LVimgCultura := DmIcons.ImgCltIcons.GetBitmap(13, ImgFoto.Width, ImgFoto.Height);
+      LIdFotoDoDataModule := DmIcons.ImgCltIcons.GetIndexByName('SemFoto');
+      LVimgCultura := DmIcons.ImgCltIcons.GetBitmap(LIdFotoDoDataModule, ImgFoto.Width, ImgFoto.Height);
       ImgFoto.Picture.Bitmap := LVimgCultura;
     end;
   finally

@@ -41,6 +41,7 @@ type
     PnlCuriosidades: TPanel;
     PbCuriosidades: TPaintBox;
     PnlChaveGemini: TPanel;
+    SbtnConfigurarChaveTrefle: TSpeedButton;
     SbtnConfigurarChaveGemini: TSpeedButton;
     procedure tmrDataHoraTimer(Sender: TObject);
     procedure SbtnSairClick(Sender: TObject);
@@ -58,6 +59,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure PbCuriosidadesPaint(Sender: TObject);
+    procedure SbtnConfigurarChaveTrefleClick(Sender: TObject);
     procedure SbtnConfigurarChaveGeminiClick(Sender: TObject);
   private
     FCulturaApiController: TCulturaApiController;
@@ -73,7 +75,8 @@ type
     procedure ReceberComando(var Msg: TMessage); message WM_USER + 1234;
     procedure AtualizarBotoes;
     procedure ExecutarLetreiro(PPrimeiraExecucao: Boolean);
-    procedure InserirChaveGemini;
+    procedure AtualizarChaveGemini;
+    procedure AtualizarChaveTrefle;
     { Private declarations }
   public
     { Public declarations }
@@ -196,7 +199,7 @@ begin
   TmrCuriosidade.Enabled := True;
 end;
 
-procedure TFrmPrincipal.InserirChaveGemini;
+procedure TFrmPrincipal.AtualizarChaveGemini;
 var
   LChave: String;
   LResposta: Boolean;
@@ -210,6 +213,31 @@ begin
       begin
         FCulturaApiController.AtualizarChaveGemini(LChave);
         MessageBox(0, PChar('A chave Gemini foi definida'),
+                        'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+        Exit;
+      end;
+    except
+      on E: Exception do
+        MessageBox(0, PChar(E.ToString), 'Inserir', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+    end;
+  until not LResposta;
+  end;
+end;
+
+procedure TFrmPrincipal.AtualizarChaveTrefle;
+var
+  LChave: String;
+  LResposta: Boolean;
+begin
+  begin
+    repeat
+    LResposta := InputQuery('Digite a chave:', 'Chave Trefle', LChave);
+    if LResposta then
+    try
+      if Trim(LChave) <> EmptyStr then
+      begin
+        FCulturaApiController.AtualizarChaveTrefle(LChave);
+        MessageBox(0, PChar('A chave Trefle foi definida'),
                         'Chave Gemini', MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
         Exit;
       end;
@@ -242,7 +270,12 @@ end;
 
 procedure TFrmPrincipal.SbtnConfigurarChaveGeminiClick(Sender: TObject);
 begin
-  InserirChaveGemini;
+  AtualizarChaveGemini;
+end;
+
+procedure TFrmPrincipal.SbtnConfigurarChaveTrefleClick(Sender: TObject);
+begin
+  AtualizarChaveTrefle;
 end;
 
 procedure TFrmPrincipal.SbtnCulturaClick(Sender: TObject);

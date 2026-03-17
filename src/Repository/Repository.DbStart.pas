@@ -55,13 +55,15 @@ begin
   ExecSQL(TDBStart.NomeDatabase,
   Format('CREATE TABLE IF NOT EXISTS %s.apicultura ('
         + 'id_gemini INTEGER PRIMARY KEY,'
-        + 'chave_gemini VARCHAR(60) NOT NULL)',
+        + 'chave_gemini VARCHAR(60) NOT NULL,'
+        + 'id_trefle INTEGER,'
+        + 'chave_trefle VARCHAR(60) NOT NULL)',
          [TDBStart.NomeSchema]));
 
    ExecSQL(TDBStart.NomeDatabase,
             Format('INSERT INTO %s.apicultura ' +
-          '(id_gemini, chave_gemini) ' +
-          'VALUES (1, '''') ' +
+          '(id_gemini, chave_gemini, id_trefle, chave_trefle) ' +
+          'VALUES (1, '''', 1, '''') ' +
           'ON CONFLICT (id_gemini) DO NOTHING',
           [TDBStart.NomeSchema]));
 end;

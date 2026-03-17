@@ -17,8 +17,8 @@ type
     destructor Destroy; override;
   function ObterUrlFotoPorApi(PNome, PNomeApi: String): TMemoryStream;
     procedure AtualizarChaveGemini(PChave: string);
+    procedure AtualizarChaveTrefle(PChave: string);
     function ObterChaveGemini: String;
-    function VerificarTipoChave: Boolean;
     function ObterCuriosidade: string;
   end;
 
@@ -41,14 +41,14 @@ begin
   Result := FCulturaApiService.ObterUrlFotoPorApi(PNome, PNomeApi);
 end;
 
-function TCulturaApiController.VerificarTipoChave: Boolean;
-begin
-  Result := FCulturaApiService.VerificarTipoChave;
-end;
-
 procedure TCulturaApiController.AtualizarChaveGemini(PChave: string);
 begin
   FCulturaApiService.AtualizarChaveGemini(PChave);
+end;
+
+procedure TCulturaApiController.AtualizarChaveTrefle(PChave: string);
+begin
+  FCulturaApiService.AtualizarChaveTrefle(PChave);
 end;
 
 constructor TCulturaApiController.Create(PCulturaApiService: TCulturaApiService);

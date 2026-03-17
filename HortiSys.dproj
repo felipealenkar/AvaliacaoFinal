@@ -193,6 +193,7 @@
         <DCCReference Include="src\View\View.LocalizarCultura.pas">
             <Form>FrmLocalizarCultura</Form>
         </DCCReference>
+        <DCCReference Include="src\Model\Model.ApiCultura.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

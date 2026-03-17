@@ -7787,7 +7787,6 @@
     Color = 14149085
     ParentBackground = False
     TabOrder = 0
-    ExplicitHeight = 887
     object LblDataHora: TLabel
       AlignWithMargins = True
       Left = 4
@@ -7803,12 +7802,11 @@
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
-      ExplicitTop = 858
       ExplicitWidth = 180
     end
     object PnlRelatórios: TPanel
       Left = 1
-      Top = 441
+      Top = 417
       Width = 287
       Height = 411
       Margins.Left = 0
@@ -7816,6 +7814,7 @@
       Color = 14149085
       ParentBackground = False
       TabOrder = 0
+      ExplicitTop = 441
       object LblRelatorios: TLabel
         Left = 1
         Top = 1
@@ -7944,7 +7943,7 @@
       Left = 1
       Top = 1
       Width = 287
-      Height = 440
+      Height = 416
       Margins.Left = 0
       Align = alTop
       Color = 14149085
@@ -8075,23 +8074,48 @@
     end
     object PnlChaveGemini: TPanel
       Left = 1
-      Top = 852
+      Top = 828
       Width = 287
-      Height = 88
+      Height = 157
       Align = alTop
       Color = 14214623
       ParentBackground = False
       TabOrder = 2
+      object SbtnConfigurarChaveTrefle: TSpeedButton
+        AlignWithMargins = True
+        Left = 4
+        Top = 81
+        Width = 279
+        Height = 70
+        Margins.Top = 4
+        Margins.Bottom = 2
+        Align = alTop
+        Caption = 'Chave Api Trefle'
+        ImageIndex = 8
+        ImageName = 'Login'
+        Images = VimgLTelaPrincipal
+        Flat = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 3093275
+        Font.Height = -21
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        Margin = 5
+        ParentFont = False
+        StyleElements = [seClient, seBorder]
+        OnClick = SbtnConfigurarChaveTrefleClick
+        ExplicitTop = 83
+      end
       object SbtnConfigurarChaveGemini: TSpeedButton
         AlignWithMargins = True
         Left = 4
-        Top = 6
+        Top = 5
         Width = 279
-        Height = 75
-        Margins.Top = 5
+        Height = 70
+        Margins.Top = 4
         Margins.Bottom = 2
         Align = alTop
-        Caption = 'Inserir chave Gemini'
+        Caption = 'Chave Api Gemini'
         ImageIndex = 8
         ImageName = 'Login'
         Images = VimgLTelaPrincipal
@@ -8105,7 +8129,7 @@
         ParentFont = False
         StyleElements = [seClient, seBorder]
         OnClick = SbtnConfigurarChaveGeminiClick
-        ExplicitLeft = 3
+        ExplicitTop = 6
       end
     end
   end
@@ -8116,7 +8140,6 @@
     Height = 1009
     Align = alClient
     TabOrder = 1
-    ExplicitHeight = 887
     object PnlTopo: TPanel
       Left = 1
       Top = 1
@@ -8245,7 +8268,6 @@
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitHeight = 800
       object VimgLogo: TVirtualImage
         Left = 0
         Top = 0
@@ -8257,10 +8279,8 @@
         ImageHeight = 0
         ImageIndex = 0
         ImageName = 'HortisysLogoSemFundoGrande'
-        ExplicitLeft = 2
-        ExplicitTop = 120
-        ExplicitWidth = 705
-        ExplicitHeight = 417
+        ExplicitLeft = 3
+        ExplicitTop = -1
       end
     end
   end

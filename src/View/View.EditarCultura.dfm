@@ -2141,8 +2141,6 @@ object FrmEditarCultura: TFrmEditarCultura
     Color = 14214623
     ParentBackground = False
     TabOrder = 0
-    ExplicitWidth = 414
-    ExplicitHeight = 529
     object LblTipoCultura: TLabel
       Left = 217
       Top = 15
@@ -2323,8 +2321,6 @@ object FrmEditarCultura: TFrmEditarCultura
       Color = 14214623
       ParentBackground = False
       TabOrder = 5
-      ExplicitTop = 400
-      ExplicitWidth = 368
       DesignSize = (
         382
         117)
@@ -2412,13 +2408,13 @@ object FrmEditarCultura: TFrmEditarCultura
     end
     object RgAPIs: TRadioGroup
       Left = 20
-      Top = 218
+      Top = 215
       Width = 135
       Height = 78
       Caption = 'APIs de busca'
       Color = 14214624
       Items.Strings = (
-        'GBIF'
+        'GBIF (Sem chave)'
         'Trefle')
       ParentBackground = False
       ParentColor = False

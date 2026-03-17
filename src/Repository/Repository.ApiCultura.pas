@@ -3,7 +3,7 @@ unit Repository.ApiCultura;
 interface
 
 uses
-  Repository.Base, Model.DbStart,
+  Repository.Base, Model.DbStart, Model.ApiCultura,
   REST.Client, REST.Types, System.JSON, System.Net.HttpClient, System.Net.HttpClientComponent,
   System.Classes, System.SysUtils, System.Generics.Collections,
 
@@ -14,20 +14,19 @@ type
   TCulturaApiRepository = class(TBaseRepository)
     private
     public
-      function ObterRespostaDoGemini(PPrompt: string): string;
-      function ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String;
-      function ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): String;
+      function ObterRespostaDoGemini(PCulturaApi: TCulturaApi): string;
+      function ObterUrlFotoPorApiTrefle(PCulturaApi: TCulturaApi): String;
+      function ObterUrlFotoPorApiGBIF(PCulturaApi: TCulturaApi): String;
       function ObterImagemComTNetHttp(PUrlImagem: string): TMemoryStream;
-      procedure AtualizarChaveGemini(PChave: string);
-      function ObterChaveGemini: String;
-      function VerificarTipoChave: Boolean;
+      procedure AtualizarChaves(PCulturaApi: TCulturaApi);
+      function ObterChaves: TCulturaApi;
   end;
 
 implementation
 
 { TApiCulturaRepository }
 
-function TCulturaApiRepository.ObterRespostaDoGemini(PPrompt: String): string;
+function TCulturaApiRepository.ObterRespostaDoGemini(PCulturaApi: TCulturaApi): string;
 var
   LClient: TRESTClient;
   LRequest: TRESTRequest;
@@ -36,12 +35,12 @@ var
   LValue: TJSONValue;
 begin
   var URLBASE_GEMINI: string := 'https://generativelanguage.googleapis.com/v1beta';
-  var KEY_GEMINI: String := ObterChaveGemini;
+  var KEY_GEMINI: String := PCulturaApi.ChaveGemini;
   Result := '';
   LClient := TRESTClient.Create(nil);
-  LRequest := TRESTRequest.Create(nil);
-  LResponse := TRESTResponse.Create(nil);
   try
+    LRequest := TRESTRequest.Create(LClient);
+    LResponse := TRESTResponse.Create(LClient);
     LClient.BaseURL := URLBASE_GEMINI;
     LRequest.Client := LClient;
     LRequest.Response := LResponse;
@@ -58,7 +57,7 @@ begin
       '    {' +
       '      "parts": [' +
       '        {' +
-      '          "text": "' + PPrompt + '"' +
+      '          "text": "' + PCulturaApi.Prompt + '"' +
       '        }' +
       '      ]' +
       '    }' +
@@ -98,13 +97,11 @@ begin
       end;
     end;
   finally
-    LResponse.Free;
-    LRequest.Free;
     LClient.Free;
   end;
 end;
 
-function TCulturaApiRepository.ObterUrlFotoPorApiTrefle(const PNomeCientifico: string): String;
+function TCulturaApiRepository.ObterUrlFotoPorApiTrefle(PCulturaApi: TCulturaApi): String;
 var
   LClient: TRESTClient;
   LRequest: TRESTRequest;
@@ -112,14 +109,13 @@ var
   LJSON: TJSONObject;
   LData: TJSONArray;
   LImageUrl: string;
-const
-  URLBASE_FOTO = 'https://trefle.io/api';
-  KEY_TREFLE   = 'usr-ZIUEpJhXOFLUwkzjbVpzk-sWWbGiSoBZDDEFpZOayBM';
 begin
+  var URLBASE_FOTO: string := 'https://trefle.io/api';
+  var KEY_TREFLE: string := PCulturaApi.ChaveTrefle;
   LClient  := TRESTClient.Create(nil);
-  LRequest := TRESTRequest.Create(nil);
-  LResponse := TRESTResponse.Create(nil);
   try
+    LRequest := TRESTRequest.Create(LClient);
+    LResponse := TRESTResponse.Create(LClient);
     LRequest.Client := LClient;
     LRequest.Response := LResponse;
     LClient.BaseURL := URLBASE_FOTO;
@@ -127,7 +123,7 @@ begin
     LRequest.Resource := '/v1/plants/search';
     LRequest.Method := rmGET;
     LRequest.Params.AddItem('token', KEY_TREFLE, pkQUERY);
-    LRequest.Params.AddItem('q', PNomeCientifico, pkQUERY);
+    LRequest.Params.AddItem('q', PCulturaApi.NomeCientifico, pkQUERY);
 
     LRequest.Execute;
 
@@ -149,37 +145,11 @@ begin
       LJSON.Free;
     end;
   finally
-    LResponse.Free;
-    LRequest.Free;
     LClient.Free;
   end;
 end;
 
-function TCulturaApiRepository.VerificarTipoChave: Boolean;
-var
-  LQuery: TFDQuery;
-  LConnection: TFDConnection;
-begin
-  Result := False;
-  LQuery := nil;
-  LConnection := nil;
-  try
-    LConnection := CriarConexao(TDBStart.NomeDatabase);
-    LQuery := TFDQuery.Create(nil);
-    LQuery.Connection := LConnection;
-    LQuery.SQL.Text :=
-    Format(('SELECT chave_personalizada from %s.apicultura where id_gemini = 1'), [TDBStart.NomeSchema]);
-    LQuery.Open;
-
-    if not LQuery.Eof then
-      Result := LQuery.FieldByName('chave_personalizada').AsBoolean;
-  finally
-    LQuery.Free;
-    LConnection.Free;
-  end;
-end;
-
-function TCulturaApiRepository.ObterUrlFotoPorApiGBIF(const PNomeCientifico: string): string;
+function TCulturaApiRepository.ObterUrlFotoPorApiGBIF(PCulturaApi: TCulturaApi): string;
 var
   LClient: TRESTClient;
   LRequest: TRESTRequest;
@@ -192,15 +162,15 @@ begin
   Result := '';
 
   LClient := TRESTClient.Create('https://api.gbif.org/v1/occurrence/search');
-  LRequest := TRESTRequest.Create(nil);
-  LResponse := TRESTResponse.Create(nil);
 
   try
+    LRequest := TRESTRequest.Create(LClient);
+    LResponse := TRESTResponse.Create(LClient);
     LRequest.Client := LClient;
     LRequest.Response := LResponse;
     LRequest.Method := rmGET;
 
-    LRequest.Params.AddItem('scientificName', Trim(PNomeCientifico), pkQUERY);
+    LRequest.Params.AddItem('scientificName', Trim(PCulturaApi.NomeCientifico), pkQUERY);
     LRequest.Params.AddItem('mediaType', 'StillImage', pkQUERY);
     LRequest.Params.AddItem('limit', '1', pkQUERY);
 
@@ -237,13 +207,11 @@ begin
     end;
 
   finally
-    LResponse.Free;
-    LRequest.Free;
     LClient.Free;
   end;
 end;
 
-procedure TCulturaApiRepository.AtualizarChaveGemini(PChave: string);
+procedure TCulturaApiRepository.AtualizarChaves(PCulturaApi: TCulturaApi);
 var
   LQuery: TFDQuery;
   LConnection: TFDConnection;
@@ -256,15 +224,16 @@ begin
       LQuery := TFDQuery.Create(nil);
       LQuery.Connection := LConnection;
       LQuery.SQL.Text := Format('UPDATE %s.apicultura ' +
-                              'SET chave_gemini = :PChave ' +
+                              'SET chave_gemini = :PChaveGemini, ' +
+                              'chave_trefle = :PChaveTrefle ' +
                               'WHERE id_gemini = 1', [TDBStart.NomeSchema]);
 
-                            LQuery.ParamByName('PChave').AsString := PChave;
-                            LQuery.ExecSQL;
+      LQuery.ParamByName('PChaveGemini').AsString := PCulturaApi.ChaveGemini;
+      LQuery.ParamByName('PChaveTrefle').AsString := PCulturaApi.ChaveTrefle;
       LQuery.ExecSQL;
     except
       on E:Exception do
-        raise Exception.Create(Format('Erro ao inserir dados na tabela %s.cultura', [TDBStart.NomeSchema])
+        raise Exception.Create(Format('Erro ao atualizar dados na tabela %s.apicultura', [TDBStart.NomeSchema])
                               + sLineBreak + sLineBreak + E.ToString);
     end;
   finally
@@ -273,23 +242,34 @@ begin
   end;
 end;
 
-function TCulturaApiRepository.ObterChaveGemini: string;
+function TCulturaApiRepository.ObterChaves: TCulturaApi;
 var
   LQuery: TFDQuery;
   LConnection: TFDConnection;
 begin
   LQuery := nil;
   LConnection := nil;
+  Result := nil;
   try
-    LConnection := CriarConexao(TDBStart.NomeDatabase);
-    LQuery := TFDQuery.Create(nil);
-    LQuery.Connection := LConnection;
-    LQuery.SQL.Text :=
-    Format(('SELECT chave_gemini from %s.apicultura where id_gemini = 1'), [TDBStart.NomeSchema]);
-    LQuery.Open;
+    try
+      LConnection := CriarConexao(TDBStart.NomeDatabase);
+      LQuery := TFDQuery.Create(nil);
+      LQuery.Connection := LConnection;
+      LQuery.SQL.Text :=
+      Format(('SELECT * from %s.apicultura where id_gemini = 1'), [TDBStart.NomeSchema]);
+      LQuery.Open;
 
-    if not LQuery.Eof then
-      Result := LQuery.FieldByName('chave_gemini').AsString;
+      if not LQuery.Eof then
+      begin
+        Result := TCulturaApi.Create;
+        Result.ChaveGemini := LQuery.FieldByName('chave_gemini').AsString;
+        Result.ChaveTrefle := LQuery.FieldByName('chave_trefle').AsString;
+      end;
+    except
+      on E:Exception do
+        raise Exception.Create(Format('Erro ao obter dados da tabela %s.apicultura', [TDBStart.NomeSchema])
+                              + sLineBreak + sLineBreak + E.ToString);
+    end;
   finally
     LQuery.Free;
     LConnection.Free;
